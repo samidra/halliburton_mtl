@@ -1,0 +1,325 @@
+* {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+}
+
+.heading_form {
+  display: flex;
+  justify-content: center;
+  margin-top: 3px;
+  background-color: rgb(236, 235, 235);
+  color: rgb(216, 17, 17);
+
+  h3 {
+    font-size: 1.3em;
+    margin: 0;
+    padding: 13px;
+    font-weight: 600;
+  }
+}
+
+.form {
+  box-shadow: rgba(0, 0, 0, 0.24) 0px 2px 2px;
+  display: flex;
+  padding: 2px;
+  padding-top: 4px;
+  flex-direction: column;
+  // height: 190px;
+  position: sticky;
+  top: 50px;
+  background-color: white;
+  z-index: 1;
+  /* Optional: to ensure it stays above other content */
+
+  ::-webkit-scrollbar {
+    width: 5px;
+    height: 5px;
+    border-radius: 0;
+  }
+
+  h4 {
+    text-align: center;
+    background-color: rgb(236, 235, 235);
+    color: rgb(216, 17, 17);
+    padding: 5px 0;
+    font-size: 0.9em;
+    font-weight: 600;
+  }
+}
+
+.form_field {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  width: max-content;
+  padding: 2px;
+
+  label {
+    font-size: 0.75em;
+    height: 20px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    margin-left: 3px;
+  }
+
+  input,
+  select,
+  option {
+    margin-left: 3px;
+    font-size: 0.7em;
+    font-weight: 500;
+    border-radius: 0;
+    padding: 0;
+    height: 20px;
+    padding-left: 3px;
+    border: 1px solid rgb(223, 221, 221);
+  }
+
+  select,
+  option {
+    padding: 1px;
+    font-size: 0.76em;
+  }
+
+  .date_search {
+    margin-left: 3px;
+    margin-top: 5px;
+    background: transparent;
+    border: none;
+    padding: 3px 5px;
+    font-weight: 600 !important;
+    font-size: 0.70em;
+    border-radius: 3px;
+    background-color: rgb(216, 17, 17);
+    color: white;
+
+    &:hover {
+      box-shadow: 0 3px 1px -2px #0003, 0 2px 2px #00000024, 0 1px 5px #0000001f;
+      cursor: pointer;
+      font-weight: 600 !important;
+      border: none;
+      text-shadow: none;
+    }
+  }
+}
+
+.button_div {
+  display: flex;
+  justify-content: flex-end;
+  margin: 2px 0;
+  padding-right: 4px;
+
+  .draft_button {
+    margin-left: 3px;
+    background: transparent;
+    border: none;
+    padding: 3px 5px;
+    font-weight: 600 !important;
+    font-size: 0.70em;
+    border-radius: 3px;
+    background-color: rgb(216, 17, 17);
+    color: white;
+
+    &:hover {
+      box-shadow: 0 3px 1px -2px #0003, 0 2px 2px #00000024, 0 1px 5px #0000001f;
+      cursor: pointer;
+      font-weight: 600 !important;
+      border: none;
+      text-shadow: none;
+    }
+  }
+
+}
+
+.highlighted {
+  transition: background-color 0.3s ease-in-out;
+  background-color: #af0707 !important;
+
+  /* Light yellow highlight */
+  input {
+    transition: background-color 0.3s ease-in-out;
+    background-color: #af0707 !important;
+    /* Light yellow highlight */
+    color: white !important;
+    border: none !important;
+    cursor: pointer;
+  }
+}
+
+label {
+  font-size: 1.1em;
+  color: #af0707;
+  font-weight: 600;
+
+  &:hover {
+    font-weight: 700;
+  }
+}
+
+.month_input_hide {
+  display: none;
+}
+
+.month_input_hide {
+  display: contents;
+}
+
+.col_table {
+  // border: 1px solid rgb(19, 16, 16);
+  padding: 5px;
+}
+
+.yesbtn {
+  color: white;
+  background-color: rgb(216, 17, 17);
+  border: none;
+  box-shadow: 0 3px 1px -2px #0003, 0 2px 2px #00000024, 0 1px 5px #0000001f;
+  font-weight: 600;
+  font-size: 0.8em;
+  padding: 3px;
+  border-radius: 2px;
+
+  &:hover {
+    background-color: rgb(151, 9, 9);
+  }
+}
+
+// table {
+//   width: 100%;
+//   text-align: center !important;
+//   thead {
+
+
+//     th {
+//       font-size: 0.65em;
+//       padding: 10px 2px;
+//       font-weight: 700;
+//     }
+//   }
+
+//   tbody {
+//     td {
+//       padding:7px 2px;
+//       font-size: 0.71em;
+//       font-weight: 600;
+//       cursor: default;
+//     }
+
+//   }
+
+//   tfoot tr td {
+//     color: rgb(77, 76, 76);
+//     font-size: 0.77em;
+//     padding: 10px 2px;
+//     font-weight: 600;
+// }
+
+// }
+
+.table-wrapper {
+  width: 100%;
+  overflow-x: auto; // enables horizontal scroll
+}
+
+table {
+  box-shadow: rgba(0, 0, 0, 0.24) 0px 2px 2px;
+  width: 100%;
+  margin-top: 25px;
+  border-collapse: collapse;
+  text-align: center !important;
+  table-layout: fixed; // forces equal column width
+  overflow-x: scroll;
+
+  thead {
+    background-color: grey;
+
+    th {
+      font-size: 0.8em;
+      padding: 6px;
+      background-color: rgb(216, 216, 216);
+      font-weight: 700;
+      white-space: nowrap; // prevents breaking
+    }
+  }
+
+  tbody {
+    td {
+      padding: 6px 2px;
+      font-size: 0.68em;
+      font-weight: 600;
+      color: rgb(41, 41, 41);
+      cursor: default;
+      // white-space: nowrap;   // keeps equal width consistent
+    }
+  }
+
+  tfoot {
+    tr td {
+      color: rgb(77, 76, 76);
+      font-size: 0.77em;
+      padding: 10px 2px;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+  }
+}
+
+
+.custom-dialog-container .mat-dialog-container {
+  transform: translate(-50%, -50%) !important;
+  border-radius: 0 !important;
+  /* This ensures the dialog is centered */
+}
+
+::ng-deep .mat-mdc-dialog-surface {
+  border-radius: 0% !important;
+  box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
+  background-color: white;
+  border: none;
+  display: flex;
+  animation: mat-mdc-dialog-surface 1s ease;
+}
+
+@keyframes mat-mdc-dialog-surface {
+  from {
+    transform: scale(0);
+  }
+
+  to {
+    transform: none;
+  }
+}
+
+.no-border-radius-dialog .mat-dialog-container {
+  border-radius: 0 !important;
+}
+
+.yesbtn {
+  color: white;
+  background-color: rgb(216, 17, 17);
+  border: none;
+  box-shadow: 0 3px 1px -2px #0003, 0 2px 2px #00000024, 0 1px 5px #0000001f;
+  font-weight: 600;
+  font-size: 0.8em;
+  padding: 3px 5px;
+  border-radius: 2px;
+
+  &:hover {
+    background-color: rgb(151, 9, 9);
+  }
+}
+
+
+/* small visual tweaks */
+.table tbody tr.table-active td {
+  padding-top: 0.75rem;
+  padding-bottom: 0.75rem;
+  background: #f8f9fa;
+}
+
+.custom-th {
+  width: 2px;
+}

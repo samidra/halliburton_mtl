@@ -1,0 +1,106 @@
+<div class="container-fluid">
+bnmbm
+    <div class="row option_filter">
+        <div class="col-6 p-1 d-flex border">
+            <div class="form_field">
+                <label for="Location">Location: </label>
+                <div class="form_field_dropdown" style="width: 100%;">
+                    <input id="Location" [(ngModel)]="selected_location" type="text" (click)="show('locationOptions')"
+                        (ngModelChange)="filteredAutocomplete('locationOptions', 'selected_location')"
+                        class="form-control" placeholder="Search Location" #inputField>
+                    <ul *ngIf="locationOptions.length !=0 && showlistlocationOptions" class="list_drop"
+                        #dropdownContainer>
+                        <li *ngFor="let option of locationOptions"
+                        (click)="option !== 'No data with this search' ? filterData('location',option) : errorMessage('Location')">
+                            {{option}}
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <div class="form_field">
+                <label for="Resource">Resource: </label>
+                <div class="form_field_dropdown" style="width: 100%;">
+                    <input id="Resource" [(ngModel)]="selected_resource" type="text" (click)="show('resourcesOptions')"
+                        (ngModelChange)="filteredAutocomplete('resourcesOptions', 'selected_resource')"
+                        class="form-control" placeholder="Search Resource" #inputField>
+                    <ul *ngIf="resourcesOptions.length !=0 && showlistresourcesOptions" class="list_drop"
+                        #dropdownContainer>
+                        <li *ngFor="let option of resourcesOptions"
+                        (click)="option !== 'No data with this search' ? filterData('resource',option) : errorMessage('Resource')">
+                            {{option}}
+                        </li>
+                    </ul>
+                    <ul *ngIf="resourcesOptions.length ===0 && showlistresourcesOptions" class="list_drop"
+                        #dropdownContainer>
+                        <li (click)="errorMessage('Resource')" >
+                            Please Select Location First
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <div class="form_field " style="justify-content: flex-end; width: fit-content; border: none;">
+                <button class="button" (click)="view_all()">View All</button>
+            </div>
+        </div>
+        <div class="col-6 legends">
+
+            <div class="sub_legends">
+                <div
+                    style="box-shadow: rgba(0, 0, 0, 0.24) -1px 2px 8px; height: 17px; width: 17px; background-color: #dccd00; margin-right: 2px;">
+                </div>
+                Tentative
+            </div>
+            <div class="sub_legends">
+                <div
+                    style="box-shadow: rgba(0, 0, 0, 0.24) -1px 2px 8px; height: 17px; width: 17px; background-color: #0041dc; margin-right: 2px;">
+                </div>
+                Requested
+            </div>
+            <div class="sub_legends">
+                <div
+                    style="box-shadow: rgba(0, 0, 0, 0.24) -1px 2px 8px; height: 17px; width: 17px; background-color: #43b400; margin-right: 2px;">
+                </div>
+                Approved
+            </div>
+            <div class="sub_legends">
+                <div style="display: flex; justify-content: center; align-items: center;  margin-right: 2px;
+         font-size: 2em; background-color: rgb(191 151 6); height: 17px; width: 17px;
+          box-shadow: rgba(0, 0, 0, 0.24) -1px 2px 8px; color: rgb(90, 1, 1);">
+                    <i class="bi bi-play-fill"></i>
+                </div>
+                Ongoing
+            </div>
+            <div class="sub_legends">
+                <div
+                    style="box-shadow: rgba(0, 0, 0, 0.24) -1px 2px 8px; height: 17px; width: 17px; background-color: black; margin-right: 2px;">
+                </div>
+                Completed
+            </div>
+            <div class="sub_legends">
+                <div class="clrdiv"
+                    style="box-shadow: rgba(0, 0, 0, 0.24) -1px 2px 8px; height: 17px; width: 17px; background-color: #d90000; margin-right: 2px;">
+                </div>
+                Facility shutdown
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12 calenderCol">
+            <div class='demo-app'>
+                <div class='demo-app-main'>
+                    <full-calendar *ngIf='calendarVisible()' #fullCalendar [options]='calendarOptions()'>
+                        <ng-template #eventContent let-arg>
+                            <i [title]="'Task Detail:' + arg.event.title">{{ arg.event.title }}</i>
+                        </ng-template>
+                    </full-calendar>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<div class="loader" *ngIf="isLoading">
+    <div class="spinner"></div>
+</div>

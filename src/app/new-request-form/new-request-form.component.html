@@ -1,0 +1,354 @@
+<div class="container-fluid">
+    <div class="row " style="padding: 12px;">
+        <div class="col-12 heading_form">
+            <h3> Create New Work Request</h3>
+        </div>
+        <div class="col-12 form" style="display: flex; justify-content: center;">
+
+            <form [formGroup]="new_work_request">
+
+                <!-- Location -->
+                <div class="form-group">
+                    <div class="form_field">
+                        <label for="location">Location: </label>
+                        <div class="form_field_dropdown">
+                            <input id="location" type="text" class="form-control" placeholder="Search location"
+                                (input)="input_location()" formControlName="location" required
+                                (click)="show('location')" #inputField>
+                            <ul *ngIf="locationOptions.length !=0" class="list_drop" #dropdownContainer>
+                                <li *ngFor="let option of locationOptions"
+                                (click)="option !== 'No data with this search' ? selectOption('location',option) : errorMessage('Location','location')">
+                                    {{option}}</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div *ngIf="new_work_request.get('location')?.touched && new_work_request.get('location')?.invalid"
+                        class="text-danger error">
+
+                        <div *ngIf="new_work_request.get('location')?.hasError('required')">
+                            Location is required.
+                        </div>
+
+                        <div *ngIf="new_work_request.get('location')?.hasError('noMatch')">
+                            Please select a valid location.
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- Resources -->
+                <div class="form-group">
+                    <div class="form_field">
+                        <label for="resources">Resources: </label>
+                        <div class="form_field_dropdown">
+                            <input id="resources" type="text" class="form-control"
+                                placeholder="Search location wise resources" formControlName="resources"
+                                (click)="show('resources')" #inputField>
+                            <ul *ngIf="resourcesOptions.length !=0" class="list_drop" #dropdownContainer>
+                                <li *ngFor="let option of resourcesOptions" (click)="selectOption('resources',option)"
+                                (click)="option !== 'No data with this search' ? selectOption('resources',option) : errorMessage('Resources','resources')">
+                                    {{option}}
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div *ngIf="new_work_request.get('resources')?.invalid && new_work_request.get('resources')?.touched"
+                        class="text-danger error">
+
+                        <div *ngIf="new_work_request.get('resources')?.hasError('required')">
+                            Resources is required.
+                        </div>
+
+                        <div *ngIf="new_work_request.get('resources')?.hasError('noMatch')">
+                            Please select a valid Resources.
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- Request Description -->
+                <div class="form-group">
+                    <div class="form_field">
+                        <label for="requestDescription">Request Description:</label>
+
+                        <input type="text" id="requestDescription" class="form-control"
+                            formControlName="requestDescription" placeholder="Write your request description" />
+                    </div>
+                    <div *ngIf="new_work_request.get('requestDescription')?.invalid && new_work_request.get('requestDescription')?.touched"
+                        class="text-danger error">
+                        Request Description is required.
+                    </div>
+                </div>
+
+                <!-- Charge Code  or work Order Option-->
+                <div class="form-group">
+                    <div class="form_field">
+                        <label>Select Charge Code or Work Order: </label>
+                        <div class="border d-flex">
+                            <div>
+                                <label>
+                                    <input type="radio" class="mx-1" formControlName="Select_Charge_Code_or_Work_Order"
+                                        value="chargeCode"> Charge Code
+                                </label>
+                            </div>
+
+                            <div>
+                                <label>
+                                    <input type="radio" class="mx-1" formControlName="Select_Charge_Code_or_Work_Order"
+                                        value="workOrder"> Work Order
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    <div *ngIf="new_work_request.get('Select_Charge_Code_or_Work_Order')?.invalid && new_work_request.get('Select_Charge_Code_or_Work_Order')?.touched"
+                        class="text-danger error">
+                        <div *ngIf="new_work_request.get('Select_Charge_Code_or_Work_Order')?.hasError('required')">
+                            Please select either a Charge Code or a Work Order to proceed.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Charge Code -->
+                <div class="form_field_add"
+                    *ngIf="new_work_request.get('Select_Charge_Code_or_Work_Order')?.value === 'chargeCode'">
+                    <div class="form-group">
+                        <div class="form_field">
+                            <label for="chargeCode">Charge Code: </label>
+                            <div class="form_field_dropdown">
+                                <input id="chargeCode" type="text" class="form-control" placeholder="Search charge code"
+                                    style="margin-right: 10px;" formControlName="chargeCode"
+                                    (click)="show('chargeCode')" #inputField>
+                                <ul *ngIf="chargeCodeOptions.length !=0" class="list_drop" #dropdownContainer>
+                                    <li *ngFor="let option of chargeCodeOptions"
+                                        (click)="option !== 'No data with this search' ? selectOption('chargeCode', option) : errorMessage('Charge Code','chargeCode')">{{option}}</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="key-description col-2" *ngFor="let item of chargeCodeList" [title]="item">
+                                <i class="bi bi-x-circle-fill" (click)="removechargeCode(item)"></i>
+                                {{item.split('-')[0]}}
+                            </div>
+                        </div>
+                    </div>
+                    <button type="button" class="add_new_button" style="right: -240px;" (click)="add_chargeCode()">                       
+                        Request New
+                    </button>
+                </div>
+
+                <!-- Work Order -->
+                <div class="form-group"
+                    *ngIf="new_work_request.get('Select_Charge_Code_or_Work_Order')?.value === 'workOrder'">
+                    <div class="form_field">
+                        <label for="workOrder">Work Order:</label>
+
+                        <input type="text" id="workOrder" class="form-control" style="width: 250px; margin-right: 10px;"
+                            formControlName="workOrder" placeholder="Write your Work Order" />
+                        <button type="button" class="button" (click)="add_workOrder('workOrder')">Add More</button>
+                    </div>
+
+                    <div class="row">
+                        <div class="key-description col-2" *ngFor="let item of workOrderList">
+                            <i class="bi bi-x-circle-fill" (click)="removeworkOrder(item)"></i>
+                            {{item}}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tools -->
+                <div class="form_field_add">
+                    <div class="form-group">
+                        <div class="form_field">
+                            <label for="tools">Tools: </label>
+                            <div class="form_field_dropdown">
+                                <input id="tools" type="text" class="form-control" placeholder="Search tool"
+                                    formControlName="tools" (click)="show('tools')" #inputField>
+                                <ul *ngIf="toolsOptions.length !=0" class="list_drop" #dropdownContainer>
+                                    <li *ngFor="let option of toolsOptions" 
+                                    (click)="option !== 'No data with this search' ? selectOption('tools',option) : errorMessage('Tool','tools')">
+                                        {{option}}
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div *ngIf="new_work_request.get('tools')?.invalid && new_work_request.get('tools')?.touched"
+                            class="text-danger error">
+
+                            <div *ngIf="new_work_request.get('tools')?.hasError('required')">
+                                Tools is required.
+                            </div>
+
+                            <div *ngIf="new_work_request.get('tools')?.hasError('noMatch')">
+                                Please select a valid Tools.
+                            </div>
+
+                        </div>
+                    </div>
+                    <button type="button" class="add_new_button" (click)="add_tools()">Request New</button>
+                </div>
+
+                <!-- Duration  -->
+                <div class="form-group">
+                    <div class="form_field">
+                        <label for="duration">Duration (days): </label>
+                        <input type="number" style="width: 200px;" placeholder="Enter duration in days" id="duration"
+                            class="form-control" formControlName="duration" />
+                    </div>
+                    <div *ngIf="new_work_request.get('duration')?.invalid && new_work_request.get('duration')?.touched"
+                        class="text-danger error">
+                        Duration is required and should be a valid number.
+                    </div>
+                </div>
+
+                <!-- PSL/Company  -->
+                <div class="form-group">
+                    <div class="form_field">
+                        <label for="pslCompany">PSL/Company: </label>
+                        <div class="form_field_dropdown">
+                            <input id="pslCompany" type="text" class="form-control" placeholder="Search PSL/Company"
+                                formControlName="pslCompany" (click)="show('pslCompany')" #inputField>
+                            <ul *ngIf="pslCompanyOptions.length !=0" class="list_drop" #dropdownContainer>
+                                <li *ngFor="let option of pslCompanyOptions"
+                                (click)="option !== 'No data with this search' ? selectOption('pslCompany',option) : errorMessage('PSL Company','pslCompany')">
+                                {{option}}
+                            </li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div *ngIf="new_work_request.get('pslCompany')?.invalid && new_work_request.get('pslCompany')?.touched"
+                        class="text-danger error">
+
+                        <div *ngIf="new_work_request.get('pslCompany')?.hasError('required')">
+                            PSL/Company is required.
+                        </div>
+
+                        <div *ngIf="new_work_request.get('pslCompany')?.hasError('noMatch')">
+                            Please select a valid PSL/Company.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Group -->
+                <div class="form-group">
+                    <div class="form_field">
+                        <label for="group">Group: </label>
+                        <div class="form_field_dropdown">
+                            <input id="group" type="text" class="form-control" placeholder="Search group"
+                                formControlName="group" (click)="show('group')" #inputField>
+                            <ul *ngIf="groupOptions.length !=0" class="list_drop" #dropdownContainer>
+                                <li *ngFor="let option of groupOptions"
+                                (click)="option !== 'No data with this search' ? selectOption('group',option) : errorMessage('Group','group')">
+                                    {{option}}
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div *ngIf="new_work_request.get('group')?.invalid && new_work_request.get('group')?.touched"
+                        class="text-danger error">
+
+                        <div *ngIf="new_work_request.get('group')?.hasError('required')">
+                            Group is required.
+                        </div>
+
+                        <div *ngIf="new_work_request.get('group')?.hasError('noMatch')">
+                            Please select a valid Group.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- lithium_batteries -->
+                <div class="form-group">
+                    <div class="form_field">
+                        <label for="lithium_battery">Lithium Battery:</label>
+                        <div class="d-flex border">
+                            <div class="check_div">
+                                <input type="radio" id="yes" formControlName="lithium_batteries" [value]="true" />
+                                <label for="yes">Yes</label>
+                            </div>
+                            <div class="check_div">
+                                <input type="radio" id="no" formControlName="lithium_batteries" [value]="false" />
+                                <label for="no">No</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div *ngIf="new_work_request.get('lithium_batteries')?.invalid &&
+                                new_work_request.get('lithium_batteries')?.touched" class="text-danger error">
+                        Please select this field. It is required.
+                    </div>
+                </div>
+
+                <div class="form-group" *ngIf="new_work_request.get('lithium_batteries')?.value === true">
+                    <div class="form_field">
+                        <label for="lithium_batteries_description">Lithium Battery Description:</label>
+
+                        <input type="text" id="lithium_batteries_description" class="form-control"
+                            formControlName="lithium_batteries_description"
+                            placeholder="Write description for Lithium Battery" />
+                    </div>
+                    <div *ngIf="new_work_request.get('lithium_batteries_description')?.invalid && new_work_request.get('lithium_batteries_description')?.touched"
+                        class="text-danger error">
+                        Lithium Battery Description is required.
+                    </div>
+                </div>
+
+                <!-- Radiation -->
+                <div class="form-group">
+                    <div class="form_field">
+                        <label>Radiation:</label>
+                        <div class="d-flex border">
+                            <div class="check_div">
+                                <input type="radio" id="radiation_yes" formControlName="Radiation" [value]="true" />
+                                <label for="radiation_yes">Yes</label>
+                            </div>
+                            <div class="check_div">
+                                <input type="radio" id="radiation_no" formControlName="Radiation" [value]="false" />
+                                <label for="radiation_no">No</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div *ngIf="new_work_request.get('Radiation')?.invalid &&
+                            new_work_request.get('Radiation')?.touched" class="text-danger error">
+                        Please select this field. It is required.
+                    </div>
+                </div>
+
+                <div class="form-group" *ngIf="new_work_request.get('Radiation')?.value === true">
+                    <div class="form_field">
+                        <label for="Radiation_description">Radiation Description:</label>
+
+                        <input type="text" id="Radiation_description" class="form-control"
+                            formControlName="Radiation_description" placeholder="Write description for Radiation" />
+                    </div>
+                    <div *ngIf="new_work_request.get('Radiation_description')?.invalid && new_work_request.get('Radiation_description')?.touched"
+                        class="text-danger error">
+                        Radiation Description is required.
+                    </div>
+                </div>
+
+                <div class="button_div">
+                    <button type="button" *ngIf="!is_draft_spinner" class="draft_button" (click)="saveAsDraft()">
+                        Save as Draft
+                    </button>
+                    <button class="save_button" *ngIf="is_draft_spinner">
+                        <div class="spinner"></div>
+                    </button>
+                    <button type="button" (click)="onSubmit()" *ngIf="!Is_spinner" class="save_button">
+                        Submit
+                        <!-- for Approval -->     
+                    </button>
+                    <button type="button" class="save_button" *ngIf="Is_spinner">
+                        <div class="spinner"></div>
+                    </button>
+                </div>
+
+            </form>
+
+        </div>
+    </div>
+</div>
+
+<div class="loader" *ngIf="isLoading">
+    <div class="spinner"></div>
+</div>

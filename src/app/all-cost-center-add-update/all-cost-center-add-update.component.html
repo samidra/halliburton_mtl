@@ -1,0 +1,58 @@
+<div class="container-fluid">
+    <div class="row" style="padding: 5px;">
+        <div class="col-12 search_div table_col tabIs_spinnerle-responsive">
+            <h4>All Cost Center Details</h4>
+            <div class="d-flex" style="display: flex; align-items: flex-end;">
+                <div style="width: 70%;">
+                    <label for="search">Search Cost Center:</label>
+                    <input type="text" id="search" [(ngModel)]="searchText" placeholder="Search by Cost Center, or Any Relevant Information">
+                </div>
+                <div style="width: 30%" class="bttn_div">
+                    <button class="start_btn" (click)="add_update('New Cost Center', '')">Add Network Number</button>
+                </div>
+            </div>
+        </div>
+        <div class="col-12">
+            <table class="table table-bordered table-hover">
+                <thead>
+                    <tr>
+                        <th>S.No</th>
+                        <th>Network Number</th>
+                        <th>Discription</th>
+                        <th>Available For Use</th>
+                        <th>Is this a Project Cost Number</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    <tr
+                        *ngFor="let request of filteredItems| paginate: { itemsPerPage, currentPage: page } ; let i = index">
+                        <th>{{i +1}}</th>
+                        <td>{{ request.networkNumber }}</td>
+                        <td>{{ request.description }}</td>
+                        <td>{{ request.availableForUse === true ? 'Yes' :'No' }}</td>
+                        <td>{{ request.projectCostNumber === true ? 'Yes' :'No' }}</td>
+                        <td align="center">
+                            <a (click)="add_update('Update Cost Center', request)"> <i class="bi bi-pencil-square"></i> Udpate</a> | 
+                            <a (click)="delete_costCenter(request.networkNumber, request.description, request.networkNumberID)"><i class="bi bi-trash3-fill"></i></a>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <!-- Show 'No data yet' if no data matches the filter -->
+            <div *ngIf="all_costCenter.length === 0" class="no-data-message">
+                No data yet
+            </div>
+            <div
+                style="display: flex;justify-content: center; margin-top: 20px; font-size: 0.87em !important; font-weight: 600 !important;">
+                <pagination-controls (pageChange)="page = $event"></pagination-controls>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="loader" *ngIf="isLoading">
+    <div class="spinner"></div>
+</div>

@@ -1,0 +1,166 @@
+<div class="container-fluid mt-1">
+
+  <div class="row option_filter">
+    <div class="col-6 p-1 d-flex">
+      <div class="form_field">
+        <label for="Location">Location: </label>
+        <div class="form_field_dropdown" style="width: 100%;">
+          <input id="Location" [(ngModel)]="selected_location" type="text" (click)="show('locationOptions')"
+            (ngModelChange)="filteredAutocomplete('locationOptions', 'selected_location')" class="form-control"
+            placeholder="Search Location" #inputField>
+          <ul *ngIf="locationOptions.length !=0 && showlistlocationOptions" class="list_drop" #dropdownContainer>
+            <li *ngFor="let option of locationOptions" (click)="filterData('location',option)">
+              {{option}}
+            </li>
+          </ul>
+        </div>
+      </div>
+      <div class="form_field">
+        <label for="Resource">Resource: </label>
+        <div class="form_field_dropdown" style="width: 100%;">
+          <input id="Resource" [(ngModel)]="selected_resource" type="text" (click)="show('resourcesOptions')"
+            (ngModelChange)="filteredAutocomplete('resourcesOptions', 'selected_resource')" class="form-control"
+            placeholder="Search Resource" #inputField>
+          <ul *ngIf="resourcesOptions.length !=0 && showlistresourcesOptions" class="list_drop" #dropdownContainer>
+            <li *ngFor="let option of resourcesOptions" (click)="filterData('resource',option)">
+              {{option}}
+            </li>
+          </ul>
+          <ul *ngIf="resourcesOptions.length ===0 && showlistresourcesOptions" class="list_drop" #dropdownContainer>
+            <li>
+              Please Select Location First
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="col-6 legends">
+      <div class="sub_legends">
+        <div style="display: flex; justify-content: center; align-items: center; 
+          background-color: rgb(160, 158, 158);font-size: 1.6em; 
+          color: rgb(255, 255, 255); height: 20px; width: 20px; margin-right: 2px;">
+          <i class="bi bi-arrow-right-square-fill"></i>
+        </div>
+        Shows the request sequence by date.
+      </div>
+      <div class="sub_legends">
+        <div
+          style="box-shadow: rgba(0, 0, 0, 0.24) -1px 2px 8px; height: 13px; width: 13px; background-color: #dccd00; margin-right: 2px;">
+        </div>
+        Tentative
+      </div>
+      <div class="sub_legends">
+        <div
+          style="box-shadow: rgba(0, 0, 0, 0.24) -1px 2px 8px; height: 13px; width: 13px; background-color: #0041dc; margin-right: 2px;">
+        </div>
+        Requested
+      </div>
+      <div class="sub_legends">
+        <div
+          style="box-shadow: rgba(0, 0, 0, 0.24) -1px 2px 8px; height: 13px; width: 13px; background-color: #43b400; margin-right: 2px;">
+        </div>
+        Approved
+      </div>
+      <div class="sub_legends">
+        <div
+          style="box-shadow: rgba(0, 0, 0, 0.24) -1px 2px 8px; height: 13px; width: 13px; background-color: black; margin-right: 2px;">
+        </div>
+        Completed
+      </div>
+      <div class="sub_legends">
+        <div class="clrdiv"
+          style="box-shadow: rgba(0, 0, 0, 0.24) -1px 2px 8px; height: 13px; width: 13px; background-color: #d90000; margin-right: 2px;">
+        </div>
+        Facility shutdown
+      </div>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-12">
+      <div class="calendar p-2 pt-0">
+        <div class="header">
+          <div class="mx-2">
+            <button class="button_month" (click)="prevMonth()"><i class="bi bi-chevron-left"
+                style="font-weight: 900;"></i></button>
+          </div>
+          <h2>{{ currentDate.format('MMMM YYYY') }}</h2>
+          <div class="me-2">
+
+            <button class="button_month buttonright" (click)="nextMonth()">
+              <i class="bi bi-chevron-right"></i></button>
+          </div>
+        </div>
+
+        <table>
+          <thead>
+            <tr>
+              <th *ngFor="let day of weekdays">{{ day }}</th>
+            </tr>
+          </thead>
+
+          <tbody cdkDropListGroup>
+
+            <tr *ngFor="let week of daysInMonth | slice: 0:7; let weekIndex = index">
+
+              <td *ngFor="let day of daysInMonth.slice(weekIndex * 7, (weekIndex + 1) * 7)" cdkDropList
+                [cdkDropListData]="day" (cdkDropListDropped)="drop($event,day)" (click)="select_dates_to_schedule(day)"
+                [ngClass]="{ 'current-month': day.isCurrentMonth,'off_days': day.isDisabled}">
+                <!-- 'selected': isSelected(day),  -->
+                <span [ngClass]="{'today': isToday(day.date)}"> {{ day.date.date() }} </span>
+                <div [ngClass]="day.todo.length > 1 ? 'setEvent':''">
+                  <div *ngFor="let event of day.todo; let i = index" class="todo-task mt-1" cdkDrag
+                    [cdkDragData]="{ date: day.date, task: event, index: i }"
+                    [ngStyle]="{ backgroundColor: getTaskColor(event.status) }" (contextmenu)="rightClick($event)"
+                    (dblclick)="task_request_see_detail(event.wRnumber,  event.taskNumber)">
+                    {{ event.wRnumber }}-{{ event.taskNumber }} <br>
+                    {{ event.resource }} <br>
+                    <div *ngIf="event.isHighlighted" [ngClass]="{ 'charge-highlight': event.isHighlighted }">
+                      <i class="bi bi-arrow-right-square-fill"></i>
+                    </div>
+                  </div>
+                </div>
+
+                <div *ngIf="isDateSelected(day.date)" class="todo-task mt-1" [ngStyle]="{ backgroundColor: '#0041dc' }"
+                  (dblclick)="task_request_see_detail(this.work_request_id, this.task_id)">
+                  <strong>New Work Request</strong> <br>
+                  <strong>Request ID:</strong> {{ this.work_request_id }} <br>
+
+                  <strong>Task ID:</strong> {{this.task_id}} <br>
+                </div>
+
+              </td>
+
+              <!-- <td *ngFor="let day of daysInMonth.slice(weekIndex * 7, (weekIndex + 1) * 7)"
+                [ngClass]="{ 'current-month': day.isCurrentMonth, 'selected': isSelected(day) }" cdkDropList
+                [cdkDropListData]="day" (cdkDropListDropped)="drop($event)">
+
+                {{ day.date.date() }}
+
+                <div [ngClass]="day.todo.length > 1 ? 'setEvent':''">
+                  <div *ngFor="let event of day.todo;  let i = index" class="todo-task mt-1" cdkDrag
+                    [cdkDragData]="{ date: day.date, task: event.task,chargeCode: event.chargeCode, index: i }"
+                    [ngStyle]="{ backgroundColor: getTaskColor(event.task) }" (contextmenu)="rightClick($event)"
+                    (dblclick)="calendar_schedule_date_detail(day)">
+                    <strong>Charge Code:</strong> {{event.chargeCode}} <br>
+                    <strong>Description:</strong> {{event.task}}
+                  </div>
+                </div>
+
+              </td> -->
+
+            </tr>
+
+          </tbody>
+
+        </table>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<div class="loader" *ngIf="isLoading">
+  <div class="spinner"></div>
+</div>

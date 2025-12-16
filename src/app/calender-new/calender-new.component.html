@@ -1,0 +1,153 @@
+<div class="container-fluid">
+
+  <div class="row option_filter">
+    <div class="col-6 p-1 d-flex">
+      <div class="form_field">
+        <label for="Location">Location: </label>
+        <div class="form_field_dropdown" style="width: 100%;">
+          <input id="Location" [(ngModel)]="selected_location" type="text" (click)="show('locationOptions')"
+            (ngModelChange)="filteredAutocomplete('locationOptions', 'selected_location')" class="form-control"
+            placeholder="Search Location" #inputField>
+          <ul *ngIf="locationOptions.length !=0 && showlistlocationOptions" class="list_drop" #dropdownContainer>
+            <li *ngFor="let option of locationOptions" (click)="filterData('location',option)">
+              {{option}}
+            </li>
+          </ul>
+        </div>
+      </div>
+      <div class="form_field">
+        <label for="Resource">Resource: </label>
+        <div class="form_field_dropdown" style="width: 100%;">
+          <input id="Resource" [(ngModel)]="selected_resource" type="text" (click)="show('resourcesOptions')"
+            (ngModelChange)="filteredAutocomplete('resourcesOptions', 'selected_resource')" class="form-control"
+            placeholder="Search Resource" #inputField>
+          <ul *ngIf="resourcesOptions.length !=0 && showlistresourcesOptions" class="list_drop" #dropdownContainer>
+            <li *ngFor="let option of resourcesOptions" (click)="filterData('resource',option)">
+              {{option}}
+            </li>
+          </ul>
+          <ul *ngIf="resourcesOptions.length ===0 && showlistresourcesOptions" class="list_drop" #dropdownContainer>
+            <li>
+              Please Select Location First
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="col-6 legends">
+
+      <div class="sub_legends">
+        <div
+          style="box-shadow: rgba(0, 0, 0, 0.24) -1px 2px 8px; height: 17px; width: 17px; background-color: #dccd00; margin-right: 2px;">
+        </div>
+        Tentative
+      </div>
+      <div class="sub_legends">
+        <div
+          style="box-shadow: rgba(0, 0, 0, 0.24) -1px 2px 8px; height: 17px; width: 17px; background-color: #0041dc; margin-right: 2px;">
+        </div>
+        Requested
+      </div>
+      <div class="sub_legends">
+        <div
+          style="box-shadow: rgba(0, 0, 0, 0.24) -1px 2px 8px; height: 17px; width: 17px; background-color: #43b400; margin-right: 2px;">
+        </div>
+        Approved
+      </div>
+      <div class="sub_legends">
+        <div style="display: flex; justify-content: center; align-items: center;  margin-right: 2px;
+         font-size: 2em; background-color: rgb(191 151 6); height: 17px; width: 17px;
+          box-shadow: rgba(0, 0, 0, 0.24) -1px 2px 8px; color: rgb(90, 1, 1);">
+          <i class="bi bi-play-fill"></i>
+        </div>
+        Ongoing
+      </div>
+      <div class="sub_legends">
+        <div
+          style="box-shadow: rgba(0, 0, 0, 0.24) -1px 2px 8px; height: 17px; width: 17px; background-color: black; margin-right: 2px;">
+        </div>
+        Completed
+      </div>
+      <div class="sub_legends">
+        <div class="clrdiv"
+          style="box-shadow: rgba(0, 0, 0, 0.24) -1px 2px 8px; height: 17px; width: 17px; background-color: #d90000; margin-right: 2px;">
+        </div>
+        Facility shutdown
+      </div>
+    </div>
+  </div>
+
+  <div class="row">
+
+    <div class="col-12 border p-1">
+
+      <div class="calendar-header border">
+        <button class="button_month" (click)="prevMonth()">
+          <i class="bi bi-chevron-left" style="font-weight: 900;"></i>
+        </button>
+        <div class="month-label">{{ currentDate.format('MMMM YYYY') }}</div>
+        <button class="button_month buttonright" (click)="nextMonth()"><i class="bi bi-chevron-right"></i></button>
+      </div>
+
+      <div class="days-row">
+        <div class="day-name" *ngFor="let day of weekDays">{{ day }}</div>
+      </div>
+
+      <div class="calendar-grid">
+
+        <ng-container *ngFor="let week of getWeeks()">
+          <div class="week-row">
+          
+            <!-- Day cells -->
+            
+            <div *ngFor="let day of week" class="day-cell" (click)="select_dates_to_schedule(day)"
+              [ngClass]="{ 'current-month': day.isCurrentMonth, 'off-day': day.isDisabled }" cdkDropList
+              [cdkDropListData]="day" (cdkDropListDropped)="drop($event, day)"
+              
+              [ngStyle]="{ 'height.px': selectedDates.size === 0 ? 100 + (getMaxTodosForWeek(week) > 3 ? (getMaxTodosForWeek(week)) * 15 : 0) : 100}">
+              <span class="day-number" [ngClass]="{ today: isToday(day.date) }">
+                {{ day.date.date() }}
+              </span>
+              <div *ngIf="isDateSelected(day.date)" class="todo-task mt-1" [ngStyle]="{ backgroundColor: '#0041dc' }"
+                (dblclick)="task_request_see_detail(this.work_request_id, this.task_id)"
+                (click)="$event.stopPropagation()"
+                [title]="'Status: Add to schedule'">
+                <strong>New Work Request</strong> <br>
+                <strong>Request ID:</strong> {{ this.work_request_id }} <br>
+                <strong>Task ID:</strong> {{ this.task_id }} <br>
+              </div>
+            </div>
+
+            <!-- Todo bars layer -->
+            <div class="todo-layer" *ngIf="selectedDates.size === 0"
+              [ngStyle]="{ 'height.px': (getMaxTodosForWeek(week) > 3 ? (getMaxTodosForWeek(week)) * 10 : 0) }">
+              <ng-container *ngFor="let todo of getEventsForWeek(week); let i = index">
+                <div class="todo-bar p-2" cdkDrag [cdkDragData]="todo"
+                  [style.gridColumnStart]="getGridColumnStart(todo, week)"
+                  [style.gridColumnEnd]="getGridColumnEnd(todo, week)"
+                  (dblclick)="task_request_see_detail(todo.wRnumber, todo.taskNumber)"
+                  [style.backgroundColor]="getTaskColor(todo.status)" [title]="
+                  'Work Id: ' + todo.wRnumber +
+                  '\nStatus: ' + todo.status +
+                  '\nLocation: ' + todo.location +
+                  '\nResource: ' + todo.resource">
+
+                  <ng-container *ngIf="todo.status === 'In Progress'">
+                    <i class="bi bi-play-fill"
+                      style="color: rgb(90, 1, 1); font-size: 1.4em; line-height: 0;"></i>&nbsp;
+                  </ng-container>
+
+                  {{ todo.taskNumber }} -- {{ todo.resource }}
+                </div>
+              </ng-container>
+            </div>
+          </div>
+        </ng-container>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="loader" *ngIf="isLoading">
+  <div class="spinner"></div>
+</div>

@@ -1,0 +1,121 @@
+<div class="container-fluid">
+  <div class="row schedule_date_event_detail mb-3">
+
+    <div class="col-7">
+      <div class="data_of_request">
+        <div class="col-12 heading_form">
+          <h3>
+            Work Request Information (
+            <span [ngStyle]="{'color': request_details?.status === 'Submitted' ? 'green' : 
+            request_details?.status === 'Draft' ? '#c79c04' : ''}">
+              {{request_details?.status}}
+            </span>
+            ) | <a (click)="modify_work_request_details()"> [Edit Details]</a> 
+            <hr class="mt-1">
+          </h3>
+        </div>
+
+        <table class="table table-bordered">
+          <thead>
+
+            <tr>
+              <th>Work Request Id:</th>
+              <td>{{request_details?.workId}}</td>
+            </tr>
+
+            <tr>
+              <th>Requestor Id:</th>
+              <td>{{request_details?.requestor}}, {{request_details?.requestor_Name}}</td>
+            </tr>
+
+            <tr>
+              <th>Request Description:</th>
+              <td>{{request_details?.description}}</td>
+            </tr>
+
+            <!-- <tr>
+              <th>Charge Code/Work Order:</th>
+              <td>{{request_details?.networkNumber}}</td>
+            </tr> -->
+            
+            <tr>
+              <th>Tools:</th>
+              <td>{{request_details?.toolDescr}}</td>
+            </tr>
+
+            <tr>
+              <th>PSL/Company:</th>
+              <td>{{request_details?.psl}}</td>
+            </tr>
+
+            <tr>
+              <th>Group:</th>
+              <td>{{request_details?.group}}</td>
+            </tr>
+          </thead>
+
+        </table>
+
+        <!-- <hr class="mt-2">
+        <h4 class="pt-1">Modify Work Request Information</h4>
+        <table class="table table-bordered">
+          <thead>
+            <tr>
+              <th>Modify Request Information:</th>
+              <td><a (click)="modify_work_request_details()">Modify Work Request Details</a></td>
+            </tr>
+          </thead>
+
+        </table> -->
+
+        <hr class="mt-2">
+
+        <div class="btn_div">
+          <h4 class="pt-1">Task List</h4>
+          <button class="yesbtn" type="button" (click)="modify_details('new')">Add Task</button>
+        </div>
+        <table class="table table-bordered mt-1">
+          <thead>
+            <tr>
+              <th>Task ID</th>
+              <th>Desctiption</th>
+              <th>Status</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            <tr *ngFor="let data of task_details; let i = index">
+              <td>{{data.taskId}}</td>
+              <td>{{data.description}}</td>
+              <td [ngStyle]="{
+              'color': 
+                data?.test_Status === 'Approved' ? 'green' : 
+                data?.test_Status === 'Submitted' ? 'green' : 
+                data?.test_Status === 'Draft' ? '#c79c04' : 
+                data?.test_Status === 'Tentatively Approved' ? '#c79c04' : 
+                data?.test_Status === 'Cancelled' ? 'red' : 
+                data?.test_Status === 'Reject' ? 'red' : 
+                data?.test_Status === 'Approval Pending' ? '#fc7303' : ''
+              }">
+                {{data.test_Status}}
+              </td>
+              <td><a (click)="get_task_details(i)">See more</a></td>
+            </tr>
+
+          </tbody>
+
+        </table>
+        <div>
+        </div>
+
+
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="loader" *ngIf="isLoading">
+  <div class="spinner"></div>
+</div>

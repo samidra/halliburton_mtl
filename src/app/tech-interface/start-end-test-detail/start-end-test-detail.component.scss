@@ -1,0 +1,107 @@
+@import url(../../work-request-form/work-request-detail/work-request-detail.component.scss);
+
+Button {
+  background-color: rgb(216, 17, 17);
+  border: none;
+  margin: 5px 0;
+  width: 90px;
+  height: 30px;
+  box-shadow: 0 3px 1px -2px #0003, 0 2px 2px #00000024, 0 1px 5px #0000001f;
+  font-weight: 600 !important;
+  font-size: 1em;
+  color: white;
+
+  &:hover {
+    cursor: pointer;
+    background-color: rgb(161, 13, 13)
+  }
+}
+
+input {
+  border-radius: 0;
+  border: 1px solid rgb(122, 122, 122);
+  font-size: 1.1em;
+  padding-left: 2px;
+  font-weight: 500;
+  background-color: white !important;
+  width: 30%;
+  box-shadow: rgba(0, 0, 0, 0.24) 0px 2px 2px;
+}
+
+.timer-display {
+  font-size: 0.9em !important;
+  font-weight: 800 !important;
+  color: #fa2020 !important;
+  padding: 15px 7px !important;
+}
+
+.selected_th {
+  width: 100% !important;
+  display: flex !important;
+  height: 49px !important;
+  align-items: center !important;
+}
+
+
+  // Common scss for Module 
+
+  .common_dialog_confirm {
+    margin: 0;
+  
+    .btn_div {
+        margin: 7px 0;
+        padding: 0 10px;
+        display: flex;
+        justify-content: flex-end;
+  
+        button {
+          border: none;
+          box-shadow: 0 3px 1px -2px #0003, 0 2px 2px #00000024, 0 1px 5px #0000001f;
+          font-weight: 600;
+          font-size: 0.8em;
+          padding: 4px;
+          border-radius: 2px;
+          width: fit-content;
+          height: fit-content;
+          padding: 3px 7px;
+        }
+      }
+    
+    h2 {
+      text-align: center;
+      font-size: 0.8em;
+      padding: 5px;
+      border-bottom: 1px solid rgb(177, 175, 175);
+      font-weight: 600;
+    }
+  
+  }
+
+  .custom-dialog-container .mat-dialog-container {
+    transform: translate(-50%, -50%) !important;
+    border-radius: 0 !important;
+    /* This ensures the dialog is centered */
+  }
+  
+  ::ng-deep .mat-mdc-dialog-surface {
+    border-radius: 0% !important;
+    box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
+    background-color: white;
+    border: none;
+    display: flex;
+    animation: mat-mdc-dialog-surface 1s ease;
+  }
+  
+  @keyframes mat-mdc-dialog-surface {
+    from {
+      transform: scale(0);
+    }
+  
+    to {
+      transform: none;
+    }
+  }
+  
+  .no-border-radius-dialog .mat-dialog-container {
+    border-radius: 0 !important;
+  }

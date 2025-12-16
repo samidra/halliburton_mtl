@@ -1,0 +1,145 @@
+<div class="container-fluid">
+    <div class="row" style="padding: 5px;">
+        <!-- <div class="col-12 heading_form">
+            <h3> Select Work Request Below</h3>
+        </div> -->
+
+        <div class="col-3 form">
+            
+            <h4>Search Filter</h4>
+
+            <div class="form_field">
+                <label for="work_requestor">Work Requestor: </label>
+                <div class="form_field_dropdown" style="width: 100%;">
+                    <input id="work_requestor" [(ngModel)]="filter.requester" type="text" 
+                    (click)="show('requester')" (ngModelChange)="filteredAutocomplete('filtered_all_requestor', 'requester')"
+                        class="form-control" placeholder="Search work_requestor" #inputField>
+                    <ul *ngIf="filtered_all_requestor.length !=0 && showlistrequester" class="list_drop" #dropdownContainer>
+                        <li *ngFor="let option of filtered_all_requestor" (click)="filterData('requester',option)">
+                            {{option}}</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="form_field">
+                <label for="work_request_no">Work Request No.:</label>
+                <div class="form_field_dropdown" style="width: 100%;">
+                    <input id="work_request_no" [(ngModel)]="filter.request_Number" type="text"
+                    (ngModelChange)="filteredAutocomplete('filtered_request_no', 'request_Number')"
+                        (click)="show('request_Number')" class="form-control" placeholder="Search by Request Number"
+                        #inputField>
+                    <ul *ngIf="filtered_request_no?.length !=0 && showlistrequest_Number" class="list_drop"
+                        #dropdownContainer>
+                        <li *ngFor="let option of filtered_request_no"
+                            (click)="filterData('request_Number',option)">{{option}}</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="form_field">
+                <label for="task_no">Task No.:</label>
+                <div class="form_field_dropdown" style="width: 100%;">
+                    <input id="task_no" [(ngModel)]="filter.task_Number" type="text"
+                    (ngModelChange)="filteredAutocomplete('filtered_task_Number', 'task_Number')"
+                        (click)="show('task_Number')" class="form-control" placeholder="Search by Task Number"
+                        #inputField>
+                    <ul *ngIf="filtered_task_Number?.length !=0 && showlisttask_Number" class="list_drop"
+                        #dropdownContainer>
+                        <li *ngFor="let option of filtered_task_Number"
+                            (click)="filterData('task_Number',option)">{{option}}</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="form_field">
+                <label for="psl">PSL: </label>
+                <div class="form_field_dropdown" style="width: 100%;">
+                    <input id="psl" [(ngModel)]="filter.psl" type="text" (click)="show('psl')" class="form-control"
+                       (ngModelChange)="filteredAutocomplete('filtered_psl', 'psl')" placeholder="Search by PSL" #inputField>
+                    <ul *ngIf="filtered_psl?.length !=0 && showlistpsl" class="list_drop" #dropdownContainer>
+                        <li *ngFor="let option of filtered_psl" (click)="filterData('psl',option)">{{option}}</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- <div class="form_field">
+                <label for="chargeCode">Charge Code: </label>
+                <div class="form_field_dropdown" style="width: 100%;">
+                    <input id="chargeCode" [(ngModel)]="filter.charge_Code" type="text" (click)="show('charge_Code')"
+                      (ngModelChange)="filteredAutocomplete('filtered_chargeCode', 'charge_Code')"  class="form-control" placeholder="Search by carge code" #inputField>
+                    <ul *ngIf="filtered_chargeCode?.length !=0 && showlistcharge_Code" class="list_drop"
+                        #dropdownContainer>
+                        <li *ngFor="let option of filtered_chargeCode" (click)="filterData('charge_Code',option)">
+                            {{option}}</li>
+                    </ul>
+                </div>
+            </div> -->
+            
+            <div class="form_field">
+                <label for="status">Status: </label>
+                <div class="form_field_dropdown" style="width: 100%;">
+                    <input id="status" [(ngModel)]="filter.status" type="text" (click)="show('status')"
+                       (ngModelChange)="filteredAutocomplete('filtered_status', 'status')" class="form-control" placeholder="Search by Status" #inputField>
+                    <ul *ngIf="filtered_status?.length !=0 && showliststatus" class="list_drop" #dropdownContainer>
+                        <li *ngFor="let option of filtered_status" (click)="filterData('status',option)">{{option}}</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="button_div">
+                <button type="button" class="draft_button" (click)="remove_filter()">
+                    View All
+                </button>
+            </div>
+            
+        </div>
+
+        <div class="col-9 table_col px-2">
+            <h4>All Work Request</h4>
+            <span style="font-size: 0.73em; font-weight: 700; width: 100%; color: rgb(202, 27, 27);
+                display: flex; justify-content: flex-end; margin-top: 3px; padding-left: 5px;">
+                **Click on Work Request Number or Task Number to get more details.
+            </span>
+            <table class="table table-bordered table-hover">
+                <thead>
+                    <tr>
+                        <th>S.No</th>
+                        <th>Work Requestor</th>
+                        <th>Work Request No.</th>
+                        <th>Task No.</th>
+                        <th>PSL</th>
+                        <th>Group</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr
+                        *ngFor="let request of filteredData | paginate: { itemsPerPage, currentPage: page }; let i = index">
+                        <th>{{i +1}}</th>
+                        <td>{{ request.requester }}</td>
+                        <td> <a (click)="view_all_detail(request.request_Number)">{{ request.request_Number }}</a></td>
+                        <td><a (click)="get_task_details(request.request_Number,request.task_Number)">{{ request.task_Number }}</a></td>
+                        <td>{{ request.psl }}</td>
+                        <td>{{ request.group }}</td>
+                        <td style="font-weight: 700;" [ngStyle]="{'color':  request?.status === 'Submitted' ? 'green' : 
+                            request?.status === 'Draft' ? '#c79c04' : ''}">
+                            {{ request.status }}
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div *ngIf="filteredData.length === 0" class="no-data-message">
+                No data yet
+            </div>
+            <div style="display: flex;justify-content: center; margin-top: 20px; font-size: 0.87em !important; font-weight: 600 !important;">
+                <pagination-controls (pageChange)="page = $event"></pagination-controls>
+            </div>
+        </div>
+        
+    </div>
+</div>
+
+<div class="loader" *ngIf="isLoading">
+    <div class="spinner"></div>
+</div>

@@ -1,0 +1,259 @@
+* {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+}
+
+/* To show the validation feedback */
+.ng-invalid.ng-touched {
+  border-color: rgb(255, 153, 0);
+}
+
+.ng-valid.ng-touched {
+  border-color: green;
+}
+
+.invalid-feedback {
+  display: block;
+}
+
+.list_drop {
+  position: absolute;
+  background: white;
+  box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
+  z-index: 2;
+  border: 1px solid rgb(209, 208, 208);
+  list-style: none;
+  height: min-content;
+  max-height: 250px;
+  width: 80%;
+  overflow-y: scroll;
+  overflow-x: hidden;
+  padding: 3px 0;
+  li {
+    font-size: 0.75em;
+    padding: 5px;
+    font-weight: 500;
+
+    &:hover {
+      background-color: rgb(231, 231, 231);
+      cursor: pointer;
+    }
+  }
+}
+
+.heading_form {
+  display: flex;
+  justify-content: center;
+  margin-top: 3px;
+  background-color: rgb(236, 235, 235);
+  color: rgb(216, 17, 17);
+
+  h3 {
+    font-size: 1.3em;
+    margin: 0;
+    padding: 13px;
+    font-weight: 600;
+  }
+}
+
+.form {
+  padding: 10px;
+  box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
+  display: flex;
+  flex-direction: column;
+  margin-top: 10px;
+  height: 355px;
+  position: sticky;
+  top: 50px;
+  z-index: 1;
+  /* Optional: to ensure it stays above other content */
+
+  ::-webkit-scrollbar {
+    width: 5px;
+    height: 5px;
+    border-radius: 0;
+  }
+
+  h4 {
+    text-align: center;
+    background-color: rgb(236, 235, 235);
+    color: rgb(216, 17, 17);
+    padding: 5px 0;
+    font-size: 0.9em;
+    font-weight: 600;
+  }
+}
+
+.form_field {
+  display: flex;
+  justify-content: flex-start;
+  flex-direction: column;
+  padding-bottom: 2px;
+  border-bottom: 1px dotted rgb(167, 167, 167);
+
+  label {
+    font-size: 0.75em;
+    height: 25px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+  }
+
+  input, select {
+    cursor: pointer;
+    font-size: 0.7em;
+    font-weight: 600;
+    border-radius: 0;
+    padding: 0;
+    height: 25px;
+    // margin-top: 15px;
+    padding-left: 3px;
+    border-color: rgb(223, 221, 221);
+  }
+
+  option {
+    font-size: 0.7em;
+    font-weight: 600;
+    color: black;
+  }
+
+}
+
+.button_div {
+  margin: 5px 0;
+}
+
+.table_col {
+  padding-top: 10px;
+  // padding-left: 10px;
+
+  h4 {
+    text-align: center;
+    background-color: rgb(236, 235, 235);
+    color: rgb(216, 17, 17);
+    padding: 5px 0;
+    font-size: 0.9em;
+    font-weight: 600;
+  }
+}
+
+table {
+  box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
+  margin-top: 5px;
+
+  th {
+    font-size: 0.75em;
+  }
+
+  td {
+    font-size: 0.7em;
+    font-weight: 500;
+    padding: 5px;
+    a {
+      color: rgb(23, 6, 173);
+      font-weight: 600;
+      font-size: 1em;
+      cursor: pointer;
+
+      &:hover {
+        font-weight: 700;
+        text-decoration: underline;
+      }
+    }
+  }
+
+}
+
+.no-data-message {
+  padding: 20px;
+  text-align: center;
+  font-size: 1.9em;
+  color: red;
+  background-color: white;
+  border: 1px solid rgb(233, 233, 233);
+}
+
+.button_div {
+  display: flex;
+  justify-content: flex-end;
+  margin: 10px 0;
+
+  .draft_button {
+    background: transparent;
+    border: none;
+    width: 80px;
+    height: 30px;
+    box-shadow: 0 3px 1px -2px #0003, 0 2px 2px #00000024, 0 1px 5px #0000001f;
+    font-weight: 600 !important;
+    font-size: 0.75em;
+    border-radius: 6px;
+    border: 1px solid rgb(235, 122, 122);
+
+    &:hover {
+      cursor: pointer;
+      font-weight: 600 !important;
+      border: none;
+      background-color: rgb(216, 17, 17);
+      color: white;
+      text-shadow: none;
+    }
+  }
+
+}
+
+.schedule_date_event_detail {
+  margin: 0;
+  padding: 10px;
+
+  h2 {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.8em;
+    font-weight: 600;
+    color: #4b4848;
+    padding: 5px;
+    border-bottom: 1px solid rgb(177, 175, 175);
+  }
+
+  .data_of_request {
+    display: flex;
+    justify-content: space-between;
+    padding: 5px;
+
+    table {
+      thead {
+        th {
+          font-size: 0.7em;
+          font-weight: 600;
+          color: #4b4848;
+          padding: 5px;
+        }
+
+        td {
+          padding: 5px;
+          font-size: 0.7em;
+          font-weight: 500;
+        }
+      }
+    }
+  }
+}
+
+.custom-dialog-container .mat-dialog-container {
+  border-radius: 0;
+  transform: translate(-50%, -50%) !important;
+  border-radius: 0 !important;
+  /* This ensures the dialog is centered */
+}
+
+::ng-deep .mat-mdc-dialog-surface {
+  border-radius: 2px !important;
+  display: flex;
+
+}
+
+.no-border-radius-dialog .mat-dialog-container {
+  border-radius: 0 !important;
+}

@@ -1,0 +1,132 @@
+<div class="container-fluid">
+    <div class="row p-1 mt-2">
+        <div class="col-12 form border-right">
+            <h4>Search Filter</h4>
+            <div class="d-flex border" style="display: flex; align-items: center;">
+                <div style="border: 1px solid rgb(53, 53, 53);">
+                    <div class="form_field">
+                        <label for="">Start Date:</label>
+                        <input type="date" [(ngModel)]="startDate" class="mt-1" placeholder="Start Date">
+                        <label for="">End Date:</label>
+                        <input type="date" [(ngModel)]="endDate" class="mt-1" placeholder="End Date">
+                        <button type="button" class="date_search" (click)="filterByDateRange()">
+                            Search
+                        </button>
+                    </div>
+                </div>
+                <div style="display: flex; justify-content: space-between;width: 100%;">
+
+
+                    <div class="form_field">
+                        <label for="select_field">Select Filter Option: </label>
+                        <select name="" id="select_field" (change)="getfilterselectedOption($event)">
+                            <option value="Select Filter Option" selected>Select Filter Option</option>
+                            <option *ngFor="let item of filterOptionList" [value]="item">
+                                {{item}}
+                            </option>
+                        </select>
+                    </div>
+
+                    <div class="form_field" *ngIf="this.selectedFilterValue === 'Charge Code'">
+                        <label for="chargeCode_search">Charge Code: </label>
+                        <input type="text" id="chargeCode_search" [(ngModel)]="chargeCode_search"
+                            placeholder="Search by Charge Code" (ngModelChange)="filteredAutocomplete()">
+                    </div>
+
+                    <div class="form_field" *ngIf="this.selectedFilterValue === 'Resource'">
+                        <label for="Resource_search">Resource: </label>
+                        <input type="text" id="Resource_search" [(ngModel)]="Resource_search"
+                            placeholder="Search by Resource" (ngModelChange)="filteredAutocomplete()">
+                    </div>
+
+                    <div class="form_field" *ngIf="this.selectedFilterValue === 'Tool'">
+                        <label for="Tool_search">Tool: </label>
+                        <input type="text" id="Tool_search" [(ngModel)]="Tool_search" placeholder="Search by Tool"
+                            (ngModelChange)="filteredAutocomplete()">
+                    </div>
+
+                    <div class="form_field" *ngIf="this.selectedFilterValue === 'PSL'">
+                        <label for="psl_search">PSL: </label>
+                        <input type="text" id="psl_search" [(ngModel)]="psl_search" placeholder="Search by PSL"
+                            (ngModelChange)="filteredAutocomplete()">
+                    </div>
+
+                    <div class="form_field" *ngIf="this.selectedFilterValue === 'Group'">
+                        <label for="group_search">Group: </label>
+                        <input type="text" id="group_search" [(ngModel)]="group_search" placeholder="Search by Group"
+                            (ngModelChange)="filteredAutocomplete()">
+                    </div>
+
+                    <div class="button_div" *ngIf="this.selectedFilterValue != 'Select Filter Option'">
+                        <button type="button" class="draft_button" (click)="remove_filter()">
+                            View All
+                        </button>
+                    </div>
+
+                    <div style="display: flex; justify-content:flex-end; padding: 3px;">
+                        <button class="yesbtn"
+                            (click)="button_name === 'Expand All' ? expandAll():collapseAll()">{{button_name}}</button>
+                        <button class="yesbtn mx-2" (click)="exportToExcel()">Export to Excel</button>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+        <div class="col-12 col_table">
+            <table class="table table-bordered table-hover table-responsive">
+                <thead class="table-light">
+                    <tr>
+                        <th *ngFor="let header of table_headers">{{ header.label }}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <ng-container *ngFor="let row of all_task; let i = index">
+                        <tr (click)="toggleRow(i)">
+                            <td *ngFor="let header of table_headers; let j = index" style="color: black; cursor: pointer !important;"
+                                [ngStyle]="{'background-color': isExpanded(i) ? '#d4e8fa' : 'transparent','cursor': 'pointer'}">
+                                <ng-container *ngIf="j === 0" style="text-align: left;">
+                                    <i class="bi" [ngClass]="isExpanded(i) ? 'bi-caret-down' : 'bi-caret-right'">
+                                    </i>
+                                    {{ getRowValue(row, header.key) }}
+                                </ng-container>
+                                <ng-container *ngIf="j !== 0">
+                                    {{ getRowValue(row, header.key)}}
+                                </ng-container>
+                            </td>
+                        </tr>
+                        <ng-container *ngIf="isExpanded(i)">
+                            <tr *ngFor="let detail of getFilteredDetails(row)">
+                                <td *ngFor="let header of table_headers">
+                                    <ng-container *ngIf="header.key === 'taskNumber'">
+                                        <a (click)="routetoTaskInterface(getRowValue(detail, header.key))" 
+                                        style="color:rgb(3, 3, 212); font-weight: 700; font-size: 1.1em; cursor: pointer;">
+                                            {{ getRowValue(detail, header.key) }}
+                                        </a>
+                                    </ng-container>
+                                    <ng-container  *ngIf="header.key != 'taskNumber'">
+                                        {{ getRowValue(detail, header.key) }}
+                                    </ng-container>
+                                </td>
+                            </tr>
+                        </ng-container>
+
+                    </ng-container>
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td [attr.colspan]="table_headers.length" class="text-end p-2">
+                            Total: {{ totalRecords }} records across {{ totalPSLs }} PSLs |
+                            Grand Total: ${{ grandTotal | number:'1.0-0' }}
+                        </td>
+                    </tr>
+                </tfoot>
+
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="loader" *ngIf="isLoading">
+    <div class="spinner"></div>
+</div>

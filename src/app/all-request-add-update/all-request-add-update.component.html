@@ -1,0 +1,77 @@
+<div class="container-fluid">
+    <div class="row" style="padding: 5px;">
+        <div class="col-12 search_div table_col tabIs_spinnerle-responsive">
+            <h4>All Resource Details</h4>
+            <div class="d-flex" style="display: flex; align-items: flex-end;">
+                <div style="width: 70%;">
+                    <label for="search">Search Resource:</label>
+                    <input type="text" id="search" [(ngModel)]="searchText" placeholder="Search by Resource, or Any Relevant Information">
+                </div>
+                <div style="width: 30%" class="bttn_div">
+                    <button class="start_btn" *ngIf="!Is_spinner" (click)="add_update_resource('Add resource', '')">Add
+                        Resource</button>
+                    <button type="button" class="start_btn" *ngIf="Is_spinner">
+                        <div class="spinner"></div>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="col-12">
+
+            <table class="table table-bordered table-hover equal-width-table">
+                <thead>
+                    <tr>
+                        <th>S.No</th>
+                        <th>Resource</th>
+                        <th>Resource Location</th>
+                        <!-- <th>Short Discription</th> -->
+                        <th>Long Discription</th>
+                        <th>Running Days</th>
+                        <th>Approvers</th>
+                        <th>Technician</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    <tr
+                        *ngFor="let request of filteredItems| paginate: { itemsPerPage, currentPage: page } ; let i = index">
+                        <th style="width: 5px !important;">{{i +1}}</th>
+                        <td>{{ request?.resource }}</td>
+                        <td>{{ request?.resourceLocation }}</td>
+                        <!-- <td [title]="request?.shortDescription">{{ request?.shortDescription?.slice(0,50)  }}
+                             <span *ngIf="request?.shortDescription?.length > 50">...</span>
+                        </td> -->
+                        <td [title]="request?.longDescription">{{ request?.longDescription?.slice(0,50) }}
+                            <span *ngIf="request?.longDescription?.length > 50">...</span>
+                        </td>
+                        <td>{{ formatDaysRunning(request?.daysRunning) }}</td>
+                        <td style="text-align: center;"><a (click)="view_all_UserList('approvers',request?.approversList)">View Approvers</a></td>
+                        <td style="text-align: center;"><a (click)="view_all_UserList('technician',request?.technicianList)">View Technician</a></td>
+                        <td style="text-align: center;">
+                            <a (click)="add_update_resource('Update resource', request?.resourceID)"> <i class="bi bi-pencil-square"></i>
+                                Udpate</a>
+                            | <a (click)="delete_resource(request?.resource, request?.resourceID)"><i
+                                    class="bi bi-trash3-fill"></i></a>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <!-- Show 'No data yet' if no data matches the filter -->
+            <div *ngIf="all_resources.length === 0" class="no-data-message">
+                No data yet
+            </div>
+            <div style="display: flex;justify-content: center; margin-top: 20px; font-size: 0.87em !important; font-weight: 600 !important;">
+                <pagination-controls (pageChange)="page = $event"></pagination-controls>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<div class="loader" *ngIf="isLoading">
+    <div class="spinner"></div>
+</div>
+
+

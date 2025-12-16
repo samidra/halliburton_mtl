@@ -1,0 +1,222 @@
+<div class="container-fluid">
+
+    <div class="row rowWell">
+        <div class="col-sm-3 wellcol">
+            <div class="well3">
+                <h4>Total Work <br> Request <br>
+                    <span> 20</span>
+                </h4>
+                <i class="bi bi-filter-square-fill"></i>
+            </div>
+        </div>
+        <div class="col-sm-3 wellcol">
+            <div class="well3" (click)="scrollToElement('pendingRequest')">
+                <h4>Pending Work <br> Request <br>
+                    <span> 20</span>
+                </h4>
+                <i class="bi bi-slash-circle-fill"></i>
+            </div>
+        </div>
+        <div class="col-sm-3 wellcol">
+            <div class="well3">
+                <h4>All Test <br> List<br>
+                    <span> 20</span>
+                </h4>
+                <i class="bi bi-stopwatch-fill"></i>
+            </div>
+        </div>
+        <div class="col-sm-3 wellcol">
+            <div class="well3" (click)="scrollToElement('testOngoing')">
+                <h4>Ongoing <br> Test<br>
+                    <span> 20</span>
+                </h4>
+                <i class="bi bi-play-circle-fill"></i>
+                <!-- <i class="bi bi-pause-circle-fill"></i> -->
+            </div>
+        </div>
+    </div>
+
+    <div class="row content">
+
+        <div class="col-12 p-3">
+            <canvasjs-chart [options]="monthly_request" [styles]="{width: '100%', height:'460px'}"></canvasjs-chart>
+        </div>
+
+        <!-- <div class="col-12 p-3">
+            <canvasjs-chart [options]="chartOptions" [styles]="{width: '100%', height:'430px'}"></canvasjs-chart>    
+        </div> -->
+        <div class="col-12">
+
+            <div class="row">
+                <div class="col-12 col_heading">
+                    Pending Work Request Detail
+                </div>
+
+                <div class="col-md-5 p-3">
+                    <canvasjs-chart [options]="work_request_chart"
+                        [styles]="{width: '99%', height:'430px'}"></canvasjs-chart>
+                </div>
+
+                <div class="col-md-7 col_table" id="pendingRequest">
+                    <table class="table table-bordered table-hover">
+                        <thead>
+                            <tr>
+                                <th colspan="8"
+                                    style="text-align: center; background-color: rgb(253, 253, 235); font-size: 1em; color: rgb(216, 17, 17);">
+                                    All Pending Work Request List</th>
+                            </tr>
+                            <tr>
+
+                                <th>S.No</th>
+                                <th>Work Requestor </th>
+                                <th>Work Request No </th>
+                                <th>Charge Code </th>
+                                <th>PSL</th>
+                                <th>Submitted On</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            <tr
+                                *ngFor="let request of dummyArray| paginate: { itemsPerPage, currentPage: pages } ; let i = index">
+                                <th>{{i +1}}</th>
+                                <td>{{ request.work_requestor }}</td>
+                                <td>{{ request.work_request_no }}</td>
+                                <td>{{ request.chargeCode }}</td>
+                                <td>{{ request.location }}</td>
+                                <td>{{ request.location }}</td>
+                                <td style="text-align: center;"><a
+                                        (click)="view_work_request_detail(request.work_requestor)">View
+                                        Detail</a></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <div style="display: flex;justify-content: center; margin-top: 20px; font-size: 0.87em !important; font-weight: 600 !important;">
+                        <pagination-controls (pageChange)="pages = $event"></pagination-controls>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="row">
+                <div class="col-12 col_heading">
+                   Ongoing Test Request Detail
+                </div>
+
+                <div class="col-md-7 col_table" id="testOngoing">
+
+                    <table class="table table-bordered table-hover">
+
+                        <thead>
+
+                            <tr>
+                                <th colspan="8"
+                                    style="text-align: center; background-color: rgb(253, 253, 235); font-size: 1em; color: rgb(216, 17, 17);">
+                                    Ongoing Test Request List
+                                </th>
+                            </tr>
+                            <tr>
+                                <th>S.No</th>
+                                <th>Task ID </th>
+                                <th>Description</th>
+                                <th>Resource</th>
+                                <th>Start Date</th>
+                                <th>End Date</th>
+                                <th>Action</th>
+                            </tr>
+
+                        </thead>
+
+                        <tbody>
+
+                            <tr
+                                *ngFor="let request of dummyArray| paginate: { itemsPerPage, currentPage: pages } ; let i = index">
+                                <th>{{i +1}}</th>
+                                <td>{{ request.work_requestor }}</td>
+                                <td>{{ request.work_request_no }}</td>
+                                <td>{{ request.chargeCode }}</td>
+                                <td>{{ request.location }}</td>
+                                <td>{{ request.location }}</td>
+                                <td style="text-align: center;">
+                                    <a (click)="view_all_detail(request.work_requestor)">
+                                        View Detail
+                                    </a>
+                                </td>
+                            </tr>
+
+                        </tbody>
+
+                    </table>
+
+                    <div style="display: flex;justify-content: center; margin-top: 20px;  font-size: 0.87em !important; font-weight: 600 !important;">
+                        <pagination-controls (pageChange)="pages = $event"></pagination-controls>
+                    </div>
+                    
+                </div>
+
+                <div class="col-md-5 p-3">
+                    <canvasjs-chart [options]="test_chart" [styles]="{width: '99%', height:'430px'}"></canvasjs-chart>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+</div>
+
+
+<div class="loader" *ngIf="isLoading">
+    <div class="spinner"></div>
+</div>
+
+
+<!-- <div class="container-fluid">
+    <div class="row p-3">
+        <div class="col-12 col_table">
+            <table class="table-bordered">
+                <thead>
+                    <tr>
+                        <th rowspan="2" class="monthss">Months</th>
+                        <td colspan="31" class="year">
+                            {{curren_year}}
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <th class="date" *ngFor="let date of dates">{{ date }}</th>
+                    </tr>
+
+                </thead>
+                <tbody>
+                    <tr *ngFor="let month of months">
+                        <td class="months">
+                            <div>{{ month.month }}</div> 
+                        </td>
+                        <td *ngFor="let day of dates; let i = index"   
+                            [ngClass]="i < month.days.length ? 'date' :'less_days'">
+                            <div *ngIf="i < month.days.length">
+                                <form [formGroup]="new_work_request" style="width: 100%;">
+
+                                    <div class="form-group">
+                                        <div class="form_field">
+                                            <select id="resources" class="form-control"
+                                                formControlName="resources">
+                                                <option value=""></option>
+                                                <option *ngFor="let option of resourcesOptions" [value]="option">{{
+                                                    option
+                                                    }}</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                            
+
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div> -->

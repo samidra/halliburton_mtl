@@ -1,0 +1,378 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+.ng-invalid.ng-touched {
+  border-color: rgb(255, 153, 0);
+}
+
+.ng-valid.ng-touched {
+  border-color: green;
+}
+
+.error {
+  width: 90%;
+  display: flex !important;
+  justify-content: flex-end !important;
+  font-size: 0.7em !important;
+  font-weight: 700 !important;
+}
+
+
+.timer-display {
+  padding: 7px !important;
+}
+
+.selected_th {
+  width: 100% !important;
+  display: flex !important;
+  height: 71px !important;
+  align-items: center !important;
+}
+
+
+
+h4 {
+  font-size: 0.9em;
+  font-weight: 600;
+  padding: 4px;
+}
+
+.schedule_date_event_detail {
+  margin: 0;
+  display: flex;
+  justify-content: center;
+
+
+  .col-7 {
+    background-color: rgb(236, 235, 235);
+    box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
+    margin-top: 20px;
+
+
+  }
+
+  .data_of_request {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 5px;
+
+    .heading_form {
+      background-color: rgb(236, 235, 235);
+      color: rgb(80, 79, 79);
+      padding: 0;
+      display: flex;
+      align-items: center;
+
+      h3 {
+        font-size: 0.9em;
+        font-weight: 600;
+        width: 100%;
+
+        a {
+          font-size: 0.8em;
+          color: rgb(55, 55, 243);
+
+          &:hover {
+            color: rgb(2, 2, 104);
+            font-weight: 700;
+            cursor: pointer !important;
+          }
+        }
+
+        .span {
+          font-size: 1em;
+          color: rgb(3, 124, 39);
+
+          a {
+            font-size: 1em;
+            color: rgb(55, 55, 243);
+          }
+
+          &:hover {
+            font-weight: 700;
+            cursor: pointer !important;
+
+            a {
+              color: rgb(2, 2, 104);
+            }
+          }
+        }
+      }
+    }
+
+    table {
+      margin-top: 7px;
+      table-layout: fixed;
+
+      a {
+        color: rgb(95, 137, 250);
+        text-decoration: underline;
+        cursor: pointer;
+
+        &:hover {
+          color: rgb(21, 56, 153) !important;
+        }
+      }
+
+      thead,
+      tbody {
+
+        th {
+          font-size: 0.7em;
+          font-weight: 700;
+          color: #4b4848;
+          padding: 5px;
+          width: 30%;
+          word-wrap: break-word;
+        }
+
+        td {
+          padding: 5px;
+          font-size: 0.7em;
+          font-weight: 600;
+          word-wrap: break-word;
+          color: #4d4b4b;
+
+          a {
+            font-size: 1em;
+            font-weight: 700;
+          }
+        }
+      }
+    }
+
+     .table_log {
+      margin-top: 7px;
+      table-layout: fixed;
+      width: 100%;
+      border-collapse: collapse;
+
+      a {
+        color: rgb(95, 137, 250);
+        text-decoration: underline;
+        cursor: pointer;
+
+        &:hover {
+          color: rgb(21, 56, 153) !important;
+        }
+      }
+
+      thead th {
+        font-size: 0.7em;
+        font-weight: 700;
+        color: #4b4848;
+        padding: 5px;
+        width: 30%;
+        position: sticky;
+        top: 0;
+        z-index: 2;
+        /* Keeps header above scroll */
+      }
+
+      tbody {
+        display: block;
+        height: 150px;
+        overflow-y: auto;
+        width: 100%;
+      }
+
+      
+      thead,
+      tbody tr {
+        display: table;
+        width: 100%;
+        table-layout: fixed;
+      }
+
+      tbody td {
+        padding: 5px;
+        font-size: 0.7em;
+        font-weight: 600;
+        word-wrap: break-word;
+        color: #4d4b4b;
+
+        a {
+          font-size: 11em;
+          font-weight: 700;
+        }
+      }
+
+
+       thead{
+        width: 98.99%;
+       }
+    }
+  }
+}
+
+.custom-dialog-container .mat-dialog-container {
+  transform: translate(-50%, -50%) !important;
+  border-radius: 0 !important;
+  /* This ensures the dialog is centered */
+}
+
+::ng-deep .mat-mdc-dialog-surface {
+  border-radius: 0% !important;
+  box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
+  background-color: white;
+  border: none;
+  display: flex;
+  animation: mat-mdc-dialog-surface 1s ease;
+}
+
+@keyframes mat-mdc-dialog-surface {
+  from {
+    transform: scale(0);
+  }
+
+  to {
+    transform: none;
+  }
+}
+
+.no-border-radius-dialog .mat-dialog-container {
+  border-radius: 0 !important;
+}
+
+.bttn_add {
+  border: none;
+  padding: 3px 5px;
+  font-size: 0.82em;
+  font-weight: 600;
+  color: rgb(20, 93, 175);
+  text-decoration: underline;
+
+  &:hover {
+    color: rgb(13, 61, 117) !important;
+    font-weight: 700;
+  }
+}
+
+
+.modify {
+  
+  overflow-y: scroll;
+  height: auto;
+  max-height: 90vh;
+  form {
+    margin: 10px;
+    margin-top: 0;
+    border: 1px solid grey;
+    .button {
+      border: none;
+      height: 27px;
+      background-color: rgb(216, 17, 17);
+      color: white;
+      font-size: 0.75em;
+      font-weight: 500;
+      padding: 0 8px;
+      border-radius: 1px;
+  
+      &:hover {
+        box-shadow: 1px 1px 5px 1px rgb(32 34 35);
+      }
+    }
+    
+  }
+
+  span {
+    font-size: 0.6em;
+    font-weight: 600;
+    width: 90%;
+    padding-left: 10px;
+  }
+
+  h2 {
+    text-align: center;
+    font-size: 0.8em;
+    padding: 5px;
+    border-bottom: 1px solid rgb(177, 175, 175);
+    font-weight: 600;
+  }
+
+  .check_div {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    padding: 3px 5px;
+    width: max-content;
+
+    label {
+      font-size: 0.75em;
+      font-weight: 600;
+      margin-left: 5px;
+      width: 30px !important;
+    }
+  }
+
+  .list_drop {
+    position: absolute;
+    background: white;
+    box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
+    z-index: 2;
+    border: 1px solid rgb(209, 208, 208);
+    list-style: none;
+    height: min-content;
+    max-height: 250px;
+    width: 80%;
+    overflow-y: scroll;
+    overflow-x: hidden;
+    padding-bottom: 3px 0;
+
+    li {
+      font-size: 0.75em;
+      padding: 5px;
+      font-weight: 500;
+
+      &:hover {
+        background-color: rgb(231, 231, 231);
+        cursor: pointer;
+      }
+    }
+  }
+
+}
+
+.btn_div {
+  display: flex;
+  justify-content: space-between;
+  padding: 2px;
+  margin-top: 5px;
+
+  button {
+    border: none;
+    box-shadow: 0 3px 1px -2px #0003, 0 2px 2px #00000024, 0 1px 5px #0000001f;
+    font-weight: 600;
+    font-size: 0.7em;
+    padding: 5px;
+    border-radius: 2px;
+  }
+
+  .yesbtn {
+    color: white;
+    background-color: rgb(216, 17, 17);
+    margin-right: 9px;
+  }
+}
+
+::ng-deep .swal2-popup {
+  font-size: 0.8em !important;
+  font-weight: 600 !important;
+}
+
+.download_td{
+  display: flex; 
+  justify-content: center;
+  font-size: 0.95em !important;
+  color: blue !important;
+  font-weight: 700 !important;
+  &:hover{
+    background-color: #ebeaead7;
+    cursor: pointer;
+    font-size: 1em !important;
+  }
+}

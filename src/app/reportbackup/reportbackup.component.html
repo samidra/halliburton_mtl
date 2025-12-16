@@ -1,0 +1,170 @@
+<div class="container-fluid">
+    <div class="row p-1 mt-2">
+        <div class="col-2 form border-right">
+            <h4>Search Filter</h4>
+            <div class="mt-2 p-1" style="border: 1px solid rgb(53, 53, 53);">
+                <div class="form_field">
+                    <label for="">Search By Start And End Date</label>
+                    <hr>
+                    <label for="">Start Date:</label>
+                    <input type="date" [(ngModel)]="startDate" class="mt-1" placeholder="Start Date">
+                    <label for="">End Date:</label>
+                    <input type="date" [(ngModel)]="endDate" class="mt-1" placeholder="End Date">
+                    <div class="button_div mt-2" style="padding: 0;">
+                        <button type="button" class="draft_button" (click)="searchRecords()">
+                            Search
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="form_field">
+                <label for="chargeCode_search">Charge Code: </label>
+                <input type="text" id="chargeCode_search" (ngModelChange)="chargeCode_search_filter($event)"
+                    [(ngModel)]="chargeCode_search" placeholder="Search by Charge Code">
+            </div>
+
+            <div class="form_field">
+                <label for="Resource_search">Resource: </label>
+                <input type="text" id="Resource_search" (input)="resource_search_filter($event)"
+                    [(ngModel)]="Resource_search" placeholder="Search by Resource">
+            </div>
+            <div class="form_field">
+                <label for="Tool_search">Tool: </label>
+                <input type="text" id="Tool_search" (input)="tool_search_filter($event)" [(ngModel)]="Tool_search"
+                    placeholder="Search by Tool">
+            </div>
+            <div class="form_field">
+                <label for="psl_search">PSL: </label>
+                <input type="text" id="psl_search" (input)="psl_search_filter($event)" [(ngModel)]="psl_search"
+                    placeholder="Search by PSL">
+            </div>
+            <div class="form_field">
+                <label for="group_search">Group: </label>
+                <input type="text" id="group_search" (input)="group_search_filter($event)" [(ngModel)]="group_search"
+                    placeholder="Search by Group">
+            </div>
+
+            <div class="button_div mt-2">
+                <button type="button" class="draft_button" (click)="filterRequests()">
+                    View All
+                </button>
+            </div>
+        </div>
+        <div class="col-10 col_table">
+            <div style="display: flex; justify-content: flex-end; padding-bottom:15px;">
+
+            </div>
+            <div style="display: flex; justify-content:flex-end; padding-bottom:15px;">
+                <button class="yesbtn"
+                    (click)="button_name === 'Expand All' ? expandAll():collapseAll()">{{button_name}}</button>
+                <button class="yesbtn mx-2" (click)="exportToExcel()">Export to Excel</button>
+            </div>
+            <table class="table table-bordered table-hover table-responsive">
+                <thead class="table-light">
+                    <tr>
+                        <th *ngFor="let header of table_headers">{{ header.label }}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <ng-container *ngFor="let row of all_task; let i = index">
+                        <tr (click)="toggleRow(i)">
+                            <td *ngFor="let header of table_headers; let j = index" style="cursor: pointer !important;"
+                                [ngStyle]="{'background-color': isExpanded(i) ? '#d4e8fa' : 'transparent','cursor': 'pointer'}">
+                                <ng-container *ngIf="j === 0">
+                                    <i class="bi" [ngClass]="isExpanded(i) ? 'bi-caret-down' : 'bi-caret-right'"
+                                        class="me-1">
+                                    </i>
+                                    {{ getRowValue(row, header.key) }}
+                                </ng-container>
+                                <ng-container *ngIf="j !== 0">
+                                    {{ getRowValue(row, header.key) }}
+                                </ng-container>
+                            </td>
+                        </tr>
+                        <ng-container *ngIf="isExpanded(i)">
+                            <tr *ngFor="let detail of row.data">
+                                <td *ngFor="let header of table_headers">
+                                    {{ getRowValue(detail, header.key) }}
+                                </td>
+                            </tr>
+                        </ng-container>
+
+                    </ng-container>
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td [attr.colspan]="table_headers.length" class="text-end p-2">
+                            Total: {{ totalRecords }} records across {{ totalPSLs }} PSLs |
+                            Grand Total: ${{ grandTotal | number:'1.0-0' }}
+                        </td>
+                    </tr>
+                </tfoot>
+
+            </table>
+        </div>
+
+
+
+        <!-- <div class="col-2"></div>
+        <div class="col-10 col_table p-2 pt-0">
+
+            <div style="display: flex; justify-content: flex-end; padding-bottom:15px;">
+                <button class="yesbtn" (click)="exportToExcel()">Download Report</button>
+            </div>
+            <table class="table-bordered">
+                <thead>
+                    <tr>
+                        <td colspan="31" class="p-2"
+                            style="background-color: rgba(196, 196, 196, 0.699); color:rgb(156, 15, 15);">
+                            <label (click)="openDatePicker()" for="month" style="cursor: pointer;"
+                                *ngIf="input_class ==='month_input_hide'">{{formattedMonth}} &nbsp; <i
+                                    class="bi bi-caret-down-fill"></i></label>
+                            <input type="month" [ngClass]="input_class" id="month" name="start" min="2020-01"
+                                [(ngModel)]="current_month" [ngModelOptions]="{standalone: true}"
+                                (ngModelChange)="onMonthChange($event)" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>Test Id</th>
+                        <th>Description</th>
+                        <th>Start Time</th>
+                        <th>End Time</th>
+                        <th>Hour</th>
+                        <th>Per Hour Rate</th>
+                        <th>Cost</th>
+                        <th>Charge Code</th>
+                        <th>Act Code</th>
+                        <th>Resource</th>
+                        <th>Tool</th>
+                        <th>PSL</th>
+                        <th>Group</th>
+                    </tr>
+
+                </thead>
+
+                <tbody>
+                    <tr *ngFor="let data of filteredRequests">
+                        <td>{{ data.testId }}</td>
+                        <td>{{ data.description }}</td>
+                        <td>{{ data.startTime }}</td>
+                        <td>{{ data.endTime }}</td>
+                        <td>{{ data.hour }}</td>
+                        <td>{{ data.perHourRate }}</td>
+                        <td>{{ data.cost }}</td>
+                        <td>{{ data.chargeCode }}</td>
+                        <td>{{ data.actCode }}</td>
+                        <td>{{ data.resource }}</td>
+                        <td>{{ data.tool }}</td>
+                        <td>{{ data.psl }}</td>
+                        <td>{{ data.group }}</td>
+                    </tr>
+                    <tr *ngIf="filteredRequests.length === 0">
+                        <td colspan="14" style="text-align: center; color: red; padding: 5px; font-size: 1em;">No data
+                            available for {{ currentMonth }} {{ currentYear }}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div> -->
+
+    </div>
+</div>

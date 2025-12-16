@@ -1,0 +1,287 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+.option_filter {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid rgb(204, 203, 203);
+  width: 100%;
+  top: 15.6px !important;
+  background: white;
+  // position: relative;
+
+  .legends {
+    display: flex;
+    justify-content: flex-end;
+    padding: 3px 6px;
+
+    .sub_legends {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      border: 1px solid rgb(243, 243, 243);
+      padding: 3px;
+      font-size: 0.55em;
+      font-weight: 700;
+    }
+  }
+
+  .form_field {
+    display: flex;
+    justify-content: flex-start;
+    flex-direction: column;
+    padding-bottom: 8px;
+    width: 50%;
+    padding: 5px;
+    border: 1px solid rgb(185, 184, 184);
+    position: relative;
+
+    label {
+      font-size: 0.75em;
+      height: 25px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+    }
+
+    input,
+    select {
+      cursor: pointer;
+      font-size: 0.7em;
+      font-weight: 600;
+      border-radius: 0;
+      padding: 0;
+      width: 95%;
+      height: 25px;
+      // margin-top: 15px;
+      padding-left: 3px;
+      border-color: rgb(223, 221, 221);
+    }
+
+    option {
+      font-size: 0.7em;
+      font-weight: 600;
+      color: black;
+    }
+
+  }
+
+  .list_drop {
+    position: absolute;
+    background: white;
+    box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
+    border: 1px solid rgb(209, 208, 208);
+    list-style: none;
+    height: min-content;
+    max-height: 250px;
+    width: 92%;
+    overflow-y: scroll;
+    overflow-x: hidden;
+    padding: 3px 0;
+    z-index: 2;
+
+    li {
+      font-size: 0.75em;
+      padding: 5px;
+      font-weight: 500;
+
+      &:hover {
+        background-color: rgb(231, 231, 231);
+        cursor: pointer;
+      }
+    }
+  }
+}
+
+.calenderCol {
+
+  .demo-app-main {
+    flex-grow: 1;
+    padding: 5px;
+
+    .fc {
+      /* the calendar root */
+      max-width: 100%;
+      margin: 0 auto;
+
+      ::ng-deep {
+
+        .fc-event,
+        .fc-col-header-cell,
+        .fc-col-header-cell-cushion .fc-event-title,
+        .fc-daygrid-day-number,
+        .fc-event-time {
+          color: rgb(0, 0, 0) !important;
+          text-decoration: none;
+          font-size: 0.9em;
+          font-weight: 600;
+        }
+        
+        .fc-toolbar-title {
+          text-align: center;
+          font-size: 2em;
+          font-weight: 500;
+          color: rgb(216, 17, 17) !important;
+        }
+
+        .fc-col-header-cell,
+        .fc-col-header-cell-cushion {
+          text-align: center;
+          font-size: 1em;
+          font-weight: 600;
+          text-decoration: none !important;
+          color: rgb(216, 17, 17) !important;
+        }
+
+        .fc-button {
+          background-color: rgb(216, 17, 17);
+          box-shadow: inset 1px -1px 14px 0px rgb(149 23 23 / 88%);
+          color: white;
+          border: none;
+          padding: 5px 12px;
+          font-weight: bold;
+          cursor: pointer;
+          transition: all 0.3s;
+          outline: none !important;
+          font-size: 1em;
+          font-weight: 500;
+          &:hover {
+            background-color: rgb(124, 10, 10);
+          }
+
+          &:focus {
+            box-shadow: none !important;
+          }
+        }
+
+        .fc-event {
+          color: rgb(255, 255, 255) !important;
+          font-weight: 600;
+          font-size: 0.7em !important;
+          border-radius: 3px;
+          margin: 0 3px !important;
+          margin-top: 4px !important;
+          padding: 0px 2px !important;
+          text-overflow: ellipsis !important;
+          overflow: hidden !important;
+          &:hover {
+            opacity: 0.8;
+          }
+        }
+      }
+    }
+
+  }
+}
+
+.calendar_schedule_date_detail {
+  margin: 0;
+  padding: 10px;
+
+
+  h2 {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.8em;
+    font-weight: 600;
+    color: #4b4848;
+    padding: 5px;
+    border-bottom: 1px solid rgb(177, 175, 175);
+  }
+
+  .data_of_request {
+    display: flex;
+    justify-content: space-between;
+    padding: 5px;
+
+    table {
+      thead {
+        th {
+          font-size: 0.8em;
+          font-weight: 600;
+          color: #4b4848;
+          padding: 5px;
+          width: 30%;
+          vertical-align: baseline;
+        }
+
+        td {
+          padding: 5px;
+          font-size: 0.75em;
+          font-weight: 600;
+
+          a {
+            color: blue;
+            font-weight: 700;
+            text-decoration: underline;
+            font-size: 1em;
+            cursor: pointer;
+            letter-spacing: 1px;
+          }
+
+          .btn_div {
+            display: flex;
+
+            button {
+              border: none;
+              box-shadow: 0 3px 1px -2px #0003, 0 2px 2px #00000024, 0 1px 5px #0000001f;
+              font-weight: 600;
+              font-size: 0.95em;
+              letter-spacing: 1px;
+              padding: 6px;
+              border-radius: 2px;
+            }
+
+            .yesbtn {
+              color: white;
+              background-color: rgb(216, 17, 17);
+              margin-right: 9px;
+
+              &:hover {
+                background-color: rgb(143, 11, 11);
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+.custom-dialog-container .mat-dialog-container {
+  border-radius: 0;
+  transform: translate(-50%, -50%) !important;
+  border-radius: 0 !important;
+  /* This ensures the dialog is centered */
+}
+
+::ng-deep .mat-mdc-dialog-surface {
+  border-radius: 2px !important;
+  display: flex;
+
+}
+
+.no-border-radius-dialog .mat-dialog-container {
+  border-radius: 0 !important;
+}
+
+.button {
+  border: none;
+  height: 27px;
+  width: max-content;
+  background-color: rgb(216, 17, 17);
+  color: white;
+  font-size: 0.75em;
+  font-weight: 500;
+  padding: 0 8px;
+  border-radius: 1px;
+
+  &:hover {
+    box-shadow: 1px 1px 5px 1px rgb(32 34 35);
+  }
+}

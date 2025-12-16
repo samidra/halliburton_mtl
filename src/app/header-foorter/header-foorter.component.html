@@ -1,0 +1,78 @@
+<div class="container-fluid main_header">
+    <div class="row header">
+        <div class="col-3 company_title">
+            <h1><a routerLink="">HALLIBURTON | MTL</a></h1>
+        </div>
+        <div class="col-6">
+            <div class="row tables_row">
+                <div class="col-12 tables_col">
+                    <div class="tabs"><a (click)="route_top()" routerLink=""> Home </a> </div>
+                    <div class="tabs">
+                        <a> Work Request </a>
+                        <div class="dropdown">
+                            <a (click)="route_top()" routerLink="create-work-request">New Request</a>
+                            <a (click)="route_top()" routerLink="work-request">Work Request Info</a>
+                            <a (click)="route_top()" href="#">Test Info</a>
+                            <a (click)="route_top()" href="#">Load Data File</a>
+                        </div>
+                    </div>
+                    <!-- <div class="tabs"><a (click)="route_top()" routerLink="calendar"> Calendar </a> </div> -->
+                    <div class="tabs"><a (click)="route_top()" routerLink="calendar"> Calendar </a> </div>
+                    <div class="tabs"><a (click)="route_top()" routerLink="report"> Reports </a> </div>
+                    <div class="tabs">
+                        <a> Admin </a>
+                        <div class="dropdown">
+                            <a (click)="route_top()" routerLink="all-resource-detail">Add/Update Resource</a>
+                            <a (click)="route_top()" routerLink="all-facility-detail">Add/Update Facility</a>
+                            <a (click)="route_top()" routerLink="all-cost-center-detail">Add/Update Cost Center</a>
+                            <a (click)="route_top()" routerLink="all-tools-detail">Add/Update Tool</a>
+                            <a (click)="route_top()" routerLink="all-user-detail">Add/Update User</a>
+                            <a (click)="route_top()" routerLink="rate-chart">Rate Chart</a>
+                        </div>
+                    </div>
+                    <div class="tabs"><a (click)="route_top()" routerLink="tech-interface"> Tech Interface </a> </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-3 user_detail">
+            <div class="detail_box">
+                <h5>User Info <i class="bi bi-chevron-double-down"></i></h5>
+
+                <div class="name">
+                    <span>
+                        <strong>User Name:</strong> Sameer
+                        <br>
+                        <strong>User Role:</strong> Admin
+                        <br>
+                        <strong>User ID:</strong> 112211
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+</div>
+
+<router-outlet />
+
+<div class="container-fluid">
+    <div class="row  footer_styling">
+        <div class="col-12 logo">
+            <h1>HALLIBURTON | MTL</h1>
+        </div>
+        <div class="col-12 quick_link">
+            <div class="tabs"><a (click)="route_top()" routerLink=""> Home </a> </div>
+            <div class="tabs"><a (click)="route_top()" routerLink="create-work-request">New Request </a> </div>
+            <div class="tabs"><a (click)="route_top()" routerLink="work-request">Work Request Info </a> </div>
+            <div class="tabs"><a (click)="route_top()" routerLink="report"> Reports </a> </div>
+            <div class="tabs"><a (click)="route_top()" routerLink="tech-interface"> Tech Interface </a> </div>
+        </div>
+        <div class="col-12 main_footer">
+            <h4>
+                Request and Data Viewer <br>
+                Server operated by Sperry, A&T
+            </h4>
+        </div>
+    </div>
+</div>

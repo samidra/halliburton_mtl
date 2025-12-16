@@ -1,0 +1,74 @@
+<div class="container-fluid">
+  <div class="row schedule_date_event_detail mb-3">
+
+    <div class="col-7">
+      <div class="data_of_request">
+        <h4>Test Information (<span style="color: green;">Approved</span>)</h4>
+        <table class="table table-bordered">
+          <thead>
+            <tr>
+              <th>Test ID:</th>
+              <td>TK000161</td>
+            </tr>
+             <tr>
+              <th>Test Start Date:</th>
+              <td><input type="datetime-local" [(ngModel)]="startTimeshow" [disabled]="true"></td>
+            </tr>
+
+            <tr>
+              <th>Test End Date:</th>
+              <td><input type="datetime-local" [(ngModel)]="endTimeshow" [disabled]="true"></td>
+            </tr>
+
+            <tr>
+            <th class="selected_th">Test Duration Till Now:</th>
+            <td class="timer-display">{{ testTimeTillNow }}</td>
+            </tr>
+
+            <tr>
+            <th class="selected_th">Test Will End After:</th>
+            <td class="timer-display">{{ remainingTime }}</td>
+            </tr>
+            
+          </thead>
+
+        </table>
+
+        <hr class="mt-2 mb-2">
+        <table class="table table-bordered">
+          <thead>
+
+            <tr>
+              <th>Test Description:</th>
+              <td>Lorem ipsum dolor</td>
+            </tr>
+
+            <tr>
+              <th>Resource:</th>
+              <td>fhejfd</td>
+            </tr>
+
+            <tr>
+              <th class="selected_th">Status:</th>
+              <td class="timer-display">{{is_test_pause === true ? 'Test Paused' : 'Ongoing'}}</td>
+            </tr>
+
+            <tr>
+              <th class="selected_th">Action:</th>
+              <td>
+                <Button (click)="pause_timer('pause')" *ngIf="!is_test_pause">Pause Test</Button> 
+                <Button (click)="pause_timer('restart')" *ngIf="is_test_pause">Restart Test</Button> 
+                <Button class="mx-2" (click)="pause_timer('end')" *ngIf="!is_test_end">End Test</Button>
+                <Button class="mx-2" (click)="pause_timer('force restart')" *ngIf="is_test_end" style="width: 150px;">Force Restart Test</Button>
+              </td>
+            </tr>
+
+          </thead>
+
+        </table>
+
+      </div>
+    </div>
+
+  </div>
+</div>

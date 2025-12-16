@@ -1,0 +1,289 @@
+<div class="container-fluid">
+
+  <div class="row schedule_date_event_detail mb-3" id="task_detail">
+
+    <div class="col-7">
+      <div class="data_of_request mt-2">
+        <div class="col-12 heading_form">
+          <h3>
+            Task ID Information (
+            <span [ngStyle]="{
+              'color': 
+                task_details?.test_Status === 'Approved' ? 'green' : 
+                task_details?.test_Status === 'Submitted' ? 'green' : 
+                task_details?.test_Status === 'Draft' ? '#c79c04' : 
+                task_details?.test_Status === 'Tentatively Approved' ? '#c79c04' : 
+                task_details?.test_Status === 'Cancelled' ? 'red' : 
+                task_details?.test_Status === 'Reject' ? 'red' : 
+                task_details?.test_Status === 'Approval Pending' ? '#fc7303' : ''
+            }">
+              {{task_details?.test_Status}}
+            </span>
+
+            )
+            <hr class="mb-1">
+            <div *ngIf="task_details?.test_Status != 'Cancelled'">
+              <a (click)="modify_details('modify')" *ngIf="task_details?.test_Status != 'Draft'"> [Edit Task
+                Details]</a>
+              {{task_details?.test_Status != 'Draft' ? '|' : ''}}
+              <a (click)="modify_details('complete_draft_request')"
+                *ngIf="task_details?.test_Status === 'Draft'">[Complete this request]</a>
+              {{task_details?.test_Status === 'Draft' ? '|' : ''}}
+              <a (click)="taskStatusChanger('cancel')">[Cancel Test]</a>
+              {{task_details?.test_Status != 'Draft' ? '|' : ''}}
+              <a (click)="taskStatusChanger('draft')" *ngIf="task_details?.test_Status != 'Draft'">[Change to Draft]</a>
+              {{task_details?.test_Status != 'Draft' ? '|' : ''}}
+              <a (click)="submit_approval(task_details)" style="color:green; font-weight: 700;"
+                *ngIf="task_details?.test_Status === 'Submitted'">[Submit for Approval]
+              </a>
+              <!-- <span style="color: black;"> (If request status is draft)</span> -->
+            </div>
+            <div *ngIf="task_details?.test_Status === 'Approval Pending'">
+              <hr class="mb-1 mt-1">
+              <marquee behavior="alternate" scrollamount="2" onmouseover="this.stop();" onmouseout="this.start();">
+                <span class="span" (click)="taskStatusChanger('Approval Pending')">RESOURCE OWNER: THIS TEST REQUIRES
+                  YOUR APPROVAL. <a>CLICK TO APPROVE</a></span>
+              </marquee>
+            </div>
+            <div *ngIf="task_details?.test_Status === 'Tentatively Approved'">
+              <hr class="mb-1 mt-1">
+              <marquee behavior="alternate" scrollamount="2" onmouseover="this.stop();" onmouseout="this.start();">
+                <span class="span" (click)="taskStatusChanger('Approval Pending')">RESOURCE OWNER: THIS TEST REQUIRES
+                  YOUR APPROVAL. <a>CLICK TO APPROVE</a></span>
+              </marquee>
+            </div>
+          </h3>
+
+        </div>
+
+        <table class="table table-bordered">
+          <thead>
+
+            <tr>
+              <th>Work Id/Task Id:</th>
+              <td>{{task_details?.workId}} / {{task_details?.taskId}}</td>
+            </tr>
+
+            <tr>
+              <th>Requestor Id:</th>
+              <td>{{task_details?.requestor}} - {{task_details?.requestor_Name}}</td>
+            </tr>
+
+            <tr>
+              <th>Location:</th>
+              <td>{{task_details?.location}}</td>
+            </tr>
+
+            <tr>
+              <th>Resource:</th>
+              <td>{{task_details?.resource}}</td>
+            </tr>
+
+            <tr>
+              <th>Desctiption:</th>
+              <td>{{task_details?.description}}</td>
+            </tr>
+
+            <tr *ngIf="task_details?.charge_Codes !=''">
+              <th>Charge Code:</th>
+              <td>{{task_details?.charge_Codes}}</td>
+            </tr>
+
+            <tr *ngIf="task_details?.work_Orders !=''">
+              <th>Work Order:</th>
+              <td>{{task_details?.work_Orders}}</td>
+            </tr>
+
+            <tr>
+              <th>Duration (Requested):</th>
+              <td>{{task_details?.daysRequested}}</td>
+            </tr>
+
+            <tr>
+              <th>Lithium Battery:</th>
+              <td>{{task_details?.lithiumBattery === true ? 'Yes' : 'No'}}</td>
+            </tr>
+
+            <tr *ngIf="task_details?.lithiumBattery === true">
+              <th>Lithium Battery Description:</th>
+              <td>{{task_details?.lithiumBatteryDescription}}</td>
+            </tr>
+
+            <tr>
+              <th>Radiation:</th>
+              <td>{{task_details?.radiation === true ? 'Yes' : 'No'}}</td>
+            </tr>
+
+            <tr *ngIf="task_details?.radiation === true">
+              <th>Radiation Description:</th>
+              <td>{{task_details?.radiationDescription}}</td>
+            </tr>
+
+            <tr *ngIf="task_details?.startDate != null">
+              <th>Start Date:</th>
+              <td>{{task_details?.startDate}}</td>
+            </tr>
+
+            <tr *ngIf="task_details?.endDate != null">
+              <th>End Date:</th>
+              <td>{{task_details?.endDate}}</td>
+            </tr>
+
+
+            <tr>
+              <th class="selected_th">Test Status:</th>
+              <td class="timer-display" style="font-size: 0.8em; font-weight: 700;" [ngStyle]="{
+              'color': 
+                task_details?.test_Status === 'Approved' ? 'green' : 
+                task_details?.test_Status === 'Submitted' ? 'green' : 
+                task_details?.test_Status === 'Draft' ? '#c79c04' : 
+                task_details?.test_Status === 'Tentatively Approved' ? '#c79c04' : 
+                task_details?.test_Status === 'Cancelled' ? 'red' : 
+                task_details?.test_Status === 'Reject' ? 'red' : 
+                task_details?.test_Status === 'Approval Pending' ? '#fc7303' : ''
+              }">
+                {{task_details?.test_Status}} <br>
+                <span style="color: black; font-size: 0.85em;" *ngIf="task_details?.test_Status === 'Submitted'">
+                  (Start and end dates not submitted. Click 'Submit for Approval' in the Modify Information section
+                  below.)
+                </span>
+                <span style="color: black;  font-size: 0.85em;" *ngIf="task_details?.test_Status === 'Draft'">
+                  (Click the 'Complete this request' button at the top tow to Submit this request.)
+                </span>
+                <span style="color: black;  font-size: 0.85em;"
+                  *ngIf="task_details?.test_Status === 'Approval Pending'">
+                  (Click the 'CLICK TO APPROVE' button at the top to to Submit this request.)
+                </span>
+              </td>
+            </tr>
+          </thead>
+
+        </table>
+
+        <div *ngIf="task_details?.test_Status != 'Cancelled'">
+
+          <hr class="mt-2">
+          <h4>Contacts | <button class="bttn_add" (click)="add_contact()">[Click here to Add Contact]</button></h4>
+          <table class="table table-bordered">
+            <thead>
+              <tr>
+                <th>Hall ID</th>
+                <th>User Name</th>
+                <th>Email</th>
+              </tr>
+            </thead>
+            <thead>
+
+              <tr *ngFor="let contact of contacts">
+                <td>{{contact.userId}}</td>
+                <td>{{contact.userName}}</td>
+                <td> <a href="mailto:{{contact.email}}">{{contact.email}}</a></td>
+              </tr>
+            </thead>
+
+          </table>
+
+          <hr class="mt-2">
+          <h4>Log Entries | <button class="bttn_add" (click)="add_log_entries()">[Click here to Add Log
+              Entries]</button></h4>
+          <table class="table table_log table-bordered">
+            <thead>
+              <tr>
+                <th>Hall ID</th>
+                <th>Username</th>
+                <th>Timestamp</th>
+                <th>Log Entry</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              <tr *ngIf="this.log_entry_data?.length === 0">
+                <td> &nbsp; </td>
+                <td> </td>
+                <td> </td>
+                <td> </td>
+              </tr>
+              <tr *ngFor="let data of log_entry_data">
+                <td>{{data.userID}}</td>
+                <td>{{data.userName}}</td>
+                <td>{{data.timeStamp}}</td>
+                <td>{{data.logEntry}}</td>
+              </tr>
+
+            </tbody>
+
+          </table>
+
+          <hr class="mt-2">
+          <h4>Data</h4>
+          <table class="table table-bordered">
+            <thead>
+              <tr>
+                <th>Task Data:</th>
+                <td><a href="">Click here to view data.</a></td>
+              </tr>
+            </thead>
+
+          </table>
+
+          <hr class="mt-2">
+          <h4>Files | <button class="bttn_add" (click)="upload_file()">[Click here to Upload File]</button></h4>
+
+           <table class="table table-bordered">
+            <thead>
+              <tr>
+                <th>File Name</th>
+                <th>Description</th>
+                <th>Download</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              <tr *ngIf="this.upload_file_details?.length === 0">
+                <td> &nbsp; </td>
+                <td> </td>
+              </tr>
+             <tr *ngFor="let data of upload_file_details">
+                <td>{{data.fileName}}</td>
+                <td>{{data.description}}</td>
+                <td class="download_td" (click)="download_file(data.fileName)"><i class="bi bi-download"></i></td>
+              </tr>
+
+            </tbody>
+
+          </table>
+
+          <hr class="mt-2">
+          <h4>Links | <button class="bttn_add" (click)="add_link()">[Click here to Add Link]</button></h4>
+           <table class="table table-bordered">
+            <thead>
+              <tr>
+                <th>Link</th>
+                <th>Description</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              <tr *ngIf="this.upload_link?.length === 0">
+                <td> &nbsp; </td>
+                <td> </td>
+              </tr>
+              <tr *ngFor="let link of upload_link">
+                <td><a [href]="link.link.startsWith('http') ? link.link : 'https://' + link.link" target="_blank">
+                    {{ link.link }}
+                  </a></td>
+                <td>{{link.description}}</td>
+              </tr>
+            </tbody>
+          </table>
+
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="loader" *ngIf="isLoading">
+  <div class="spinner"></div>
+</div>

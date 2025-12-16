@@ -1,0 +1,436 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+.option_filter {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid rgb(204, 203, 203);
+  width: 100%;
+  top: 15.6px !important;
+  background: white;
+  // position: relative;
+
+  .legends {
+    display: flex;
+    justify-content: flex-end;
+    padding: 3px 6px;
+
+    .sub_legends {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      border: 1px solid rgb(243, 243, 243);
+      padding: 3px;
+      font-size: 0.55em;
+      font-weight: 700;
+    }
+  }
+
+  .form_field {
+    display: flex;
+    justify-content: flex-start;
+    flex-direction: column;
+    padding-bottom: 8px;
+    width: 50%;
+    padding: 5px;
+    border: 1px solid rgb(185, 184, 184);
+    position: relative;
+
+    label {
+      font-size: 0.75em;
+      height: 25px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+    }
+
+    input,
+    select {
+      cursor: pointer;
+      font-size: 0.7em;
+      font-weight: 600;
+      border-radius: 0;
+      padding: 0;
+      width: 95%;
+      height: 25px;
+      // margin-top: 15px;
+      padding-left: 3px;
+      border-color: rgb(223, 221, 221);
+    }
+
+    option {
+      font-size: 0.7em;
+      font-weight: 600;
+      color: black;
+    }
+
+  }
+
+  .list_drop {
+    position: absolute;
+    background: white;
+    box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
+    border: 1px solid rgb(209, 208, 208);
+    list-style: none;
+    height: min-content;
+    max-height: 250px;
+    width: 92%;
+    overflow-y: scroll;
+    overflow-x: hidden;
+    padding: 3px 0;
+    z-index: 2;
+
+    li {
+      font-size: 0.75em;
+      padding: 5px;
+      font-weight: 500;
+
+      &:hover {
+        background-color: rgb(231, 231, 231);
+        cursor: pointer;
+      }
+    }
+  }
+}
+
+.calendar-header {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 5px;
+  margin-bottom: 4px;
+  font-size: 1.2rem;
+  font-weight: bold;
+
+  .month-label {
+    width: 25%;
+    text-align: center;
+    font-size: 1.3em;
+    font-weight: 500;
+    color: rgb(216, 17, 17);
+  }
+
+  .button_month {
+    width: 25px;
+    height: 25px;
+    background: none;
+    box-shadow: rgba(0, 0, 0, 0.24) 1px 1px 3px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border: 1px solid #95000082;
+
+    i {
+      font-weight: 800 !important;
+      font-size: 0.9em;
+    }
+
+    &:hover {
+      border: none;
+      background-color: #d90000;
+
+      i {
+        color: white;
+      }
+    }
+  }
+
+  .buttonright {
+    margin-left: 5px;
+  }
+}
+
+.days-row {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  font-weight: bold;
+  text-align: center;
+
+  .day-name {
+    padding: 4px;
+    color: rgb(196, 2, 2);
+    border: 1px solid rgb(204, 203, 203);
+  }
+}
+
+.calendar-grid {
+  display: flex;
+  flex-direction: column;
+
+  .week-row {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    position: relative;
+    height: auto;
+
+    .day-cell {
+      border: 1px solid #ddd;
+      height: 150px;
+      padding: 4px;
+      position: relative;
+      font-size: 0.8em;
+      font-weight: 600;
+
+      .today {
+        color: red;
+        font-size: 1.5em;
+        font-weight: 600;
+        line-height: 0;
+      }
+
+      &.off-day {
+        background: #eee;
+        color: #999;
+
+        .day-number {
+          font-size: 1em;
+          font-weight: 500;
+          line-height: 0;
+        }
+      }
+
+      .todo-task {
+        cursor: pointer;
+        font-size: 0.75em;
+        font-weight: 400 !important;
+        letter-spacing: 1px;
+        width: 99%;
+        border-radius: 4px;
+        padding: 5px;
+        color: white;
+        text-align: left;
+        margin-bottom: 5px;
+        box-shadow: rgba(0, 0, 0, 0.24) -1px 2px 8px;
+        overflow: hidden;
+        position: relative;
+        z-index: 4;
+      }
+    }
+
+    .todo-layer {
+      position: absolute;
+      top: 20px;
+      left: 0;
+      right: 0;
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      pointer-events: none;
+    }
+
+    .todo-bar {
+      // grid-row: 2;
+      margin: 2px;
+      margin-bottom: 0;
+      height: auto !important;
+      border-radius: 2px;
+      padding: 0 4px;
+      font-size: 0.7em;
+      font-weight: 600;
+      color: #fff;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      pointer-events: auto;
+      cursor: pointer;
+      display: flex;
+      justify-content: flex-start;
+      align-items: center;
+      border: 1px solid rgb(255, 255, 255);
+
+      &:hover {
+        border: 2px solid rgb(151, 2, 2);
+      }
+    }
+  }
+}
+
+
+.calendar_schedule_date_detail {
+  margin: 0;
+  padding: 10px;
+
+
+  h2 {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.8em;
+    font-weight: 600;
+    color: #4b4848;
+    padding: 5px;
+    border-bottom: 1px solid rgb(177, 175, 175);
+  }
+
+  .data_of_request {
+    display: flex;
+    justify-content: space-between;
+    padding: 5px;
+
+    table {
+      thead {
+        th {
+          font-size: 0.8em;
+          font-weight: 600;
+          color: #4b4848;
+          padding: 5px;
+          width: 30%;
+          vertical-align: baseline;
+        }
+
+        td {
+          padding: 5px;
+          font-size: 0.75em;
+          font-weight: 600;
+
+          a {
+            color: blue;
+            font-weight: 700;
+            text-decoration: underline;
+            font-size: 1em;
+            cursor: pointer;
+            letter-spacing: 1px;
+          }
+
+          .btn_div {
+            display: flex;
+
+            button {
+              border: none;
+              box-shadow: 0 3px 1px -2px #0003, 0 2px 2px #00000024, 0 1px 5px #0000001f;
+              font-weight: 600;
+              font-size: 0.95em;
+              letter-spacing: 1px;
+              padding: 6px;
+              border-radius: 2px;
+            }
+
+            .yesbtn {
+              color: white;
+              background-color: rgb(216, 17, 17);
+              margin-right: 9px;
+
+              &:hover {
+                background-color: rgb(143, 11, 11);
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+.add_tool {
+  margin: 0;
+
+  form {
+    padding: 10px;
+    padding-bottom: 0;
+    display: flex;
+    flex-direction: column;
+
+    label {
+      font-size: 0.7em;
+      font-weight: 600;
+    }
+
+    input {
+      margin-top: 5px;
+      border-radius: 0;
+      border: 1px solid rgb(187, 185, 185);
+      font-size: 0.7em;
+      padding-left: 2px;
+      font-weight: 500;
+      width: 90%;
+    }
+
+    span {
+      margin-top: 5px;
+      font-size: 0.6em;
+      font-weight: 600;
+      width: 90%;
+    }
+
+    ul {
+      margin: 10px 0;
+      padding-left: 30px;
+
+      li {
+        padding: 3px 0;
+        list-style: disc;
+        font-size: 0.9em;
+        font-weight: 600;
+        color: #910303;
+      }
+    }
+
+    .span_proceed {
+      font-size: 0.75em;
+      font-weight: 700;
+      width: 100%;
+      text-align: justify;
+    }
+
+    .btn_div {
+      margin: 10px 0;
+      display: flex;
+      justify-content: flex-end;
+
+      button {
+        border: none;
+        box-shadow: 0 3px 1px -2px #0003, 0 2px 2px #00000024, 0 1px 5px #0000001f;
+        font-weight: 500;
+        font-size: 0.85em;
+        letter-spacing: 1px;
+        padding: 6px;
+        border-radius: 2px;
+      }
+
+      .yesbtn {
+        color: white;
+        background-color: rgb(216, 17, 17);
+        margin-right: 9px;
+      }
+    }
+  }
+
+  h2 {
+    text-align: center;
+    font-size: 1em;
+    padding: 5px;
+    border-bottom: 1px solid rgb(177, 175, 175);
+  }
+
+}
+
+.custom-dialog-container .mat-dialog-container {
+  border-radius: 0;
+  transform: translate(-50%, -50%) !important;
+  border-radius: 0 !important;
+  /* This ensures the dialog is centered */
+}
+
+::ng-deep .mat-mdc-dialog-surface {
+  border-radius: 2px !important;
+  display: flex;
+
+}
+
+.no-border-radius-dialog .mat-dialog-container {
+  border-radius: 0 !important;
+}
+
+.day-cell.current-month .day-number {
+  color: #000; /* black */
+  font-weight: 600;
+}
+
+.day-cell .day-number {
+  color: #9e9e9e; /* gray */
+  font-weight: 400;
+}

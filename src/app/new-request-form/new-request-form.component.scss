@@ -1,0 +1,299 @@
+/* To show the validation feedback */
+.ng-invalid.ng-touched {
+  border-color: rgb(255, 153, 0);
+}
+
+.ng-valid.ng-touched {
+  border-color: green;
+}
+
+.invalid-feedback {
+  display: block;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+input:focus {
+  outline: 0px !important;
+  box-shadow: none !important;
+}
+
+
+.list_drop {
+  position: absolute;
+  background: white;
+  box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
+  z-index: 2;
+  border: 1px solid rgb(209, 208, 208);
+  list-style: none;
+  height: min-content;
+  max-height: 250px;
+  width: 400px;
+  overflow-y: scroll;
+  overflow-x: hidden;
+  padding-bottom: 3px 0;
+
+  li {
+    font-size: 0.75em;
+    padding: 5px;
+    font-weight: 500;
+
+    &:hover {
+      background-color: rgb(231, 231, 231);
+      cursor: pointer;
+    }
+  }
+}
+
+.heading_form {
+  display: flex;
+  justify-content: center;
+  margin-top: 3px;
+  background-color: rgb(236, 235, 235);
+  color: rgb(216, 17, 17);
+  padding: 0;
+
+  h3 {
+    font-size: 1.1em;
+    margin: 0;
+    padding: 13px;
+    font-weight: 600;
+  }
+}
+
+form {
+  margin-top: 20px;
+  padding: 10px;
+  box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
+  border-radius: 5px;
+}
+
+.form_field_add {
+  margin-top: 10px;
+  display: flex;
+
+  .form-group{
+    margin-top: 0;
+  }
+  .add_new_button {
+    // position: absolute;
+    // right: -125px;
+    // top: 15px;
+    margin-left: 10px;
+    border: none;
+    height: 28px;
+    background-color: rgb(216, 17, 17);
+    color: white;
+    font-size: 0.75em;
+    font-weight: 500;
+    padding: 0 8px;
+    border-radius: 1px;
+
+    &:hover {
+      box-shadow: 1px 1px 5px 1px rgb(32 34 35);
+    }
+  }
+}
+
+.button {
+    border: none;
+    height: 27px;
+    background-color: rgb(216, 17, 17);
+    color: white;
+    font-size: 0.75em;
+    font-weight: 500;
+    padding: 0 8px;
+    border-radius: 1px;
+
+    &:hover {
+      box-shadow: 1px 1px 5px 1px rgb(32 34 35);
+    }
+  }
+
+.form-group {
+
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+
+  .check_div {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    padding: 3px 5px;
+    width: max-content;
+
+    label {
+      font-size: 0.75em;
+      font-weight: 600;
+      margin-left: 5px;
+      width: 30px !important;
+    }
+  }
+
+  .form_field {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+
+    label {
+      font-size: 0.75em;
+      width: 200px;
+      height: 30px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+    }
+
+
+    select {
+      cursor: pointer;
+    }
+
+    input,
+    select,
+    option {
+      font-size: 0.85em;
+      font-weight: 500;
+      color: black;
+    }
+
+    .form-control {
+      border-radius: 0;
+      padding: 0;
+      height: 30px;
+      width: 500px;
+      padding-left: 3px;
+    }
+
+
+  }
+
+  .error {
+    display: flex !important;
+    justify-content: flex-end !important;
+    font-size: 0.8em !important;
+    font-weight: 700 !important;
+  }
+}
+
+.button_div {
+  display: flex;
+  justify-content: flex-end;
+  margin: 10px 0;
+
+  button{
+    box-shadow: 0 3px 1px -2px #0003, 0 2px 2px #00000024, 0 1px 5px #0000001f;
+    font-weight: 600 !important;
+    font-size: 0.85em;
+    border-radius: 5px;
+    border: none;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: transparent;
+    padding: 0 7px;
+    height: 30px;
+  }
+  .draft_button {
+    border: 1px solid rgb(235, 122, 122);
+
+    &:hover {
+      border: none;
+      background-color: rgb(216, 17, 17);
+      color: white;
+      text-shadow: none;
+    }
+  }
+
+  .save_button {
+    margin-left: 20px;
+    background-color: rgb(216, 17, 17);
+    color: white;
+    text-shadow: none;
+    
+
+    &:hover {
+      background-color: rgb(148, 12, 12);
+    }
+  }
+}
+
+.add_tool {
+  margin: 0;
+  padding: 10px;
+
+  form {
+    margin: 4px;
+    padding: 10px;
+    padding-bottom: 0;
+    display: flex;
+    flex-direction: column;
+
+    label {
+      font-size: 0.7em;
+      font-weight: 600;
+    }
+
+    input {
+      margin-top: 5px;
+      border-radius: 0;
+      border: 1px solid rgb(187, 185, 185);
+      font-size: 0.7em;
+      padding-left: 2px;
+      font-weight: 500;
+    }
+
+    span {
+      margin-top: 5px;
+      font-size: 0.6em;
+      font-weight: 600;
+      width: 90%;
+    }
+
+    .span_proceed {
+      margin-top: 5px;
+      font-size: 0.75em;
+      font-weight: 700;
+      width: 100%;
+      text-align: justify;
+    }
+
+    .btn_div {
+      margin: 10px 0;
+      display: flex;
+      justify-content: flex-end;
+
+      button {
+        border: none;
+        box-shadow: 0 3px 1px -2px #0003, 0 2px 2px #00000024, 0 1px 5px #0000001f;
+        font-weight: 600;
+        font-size: 0.65em;
+        padding: 6px;
+        border-radius: 2px;
+      }
+
+      .yesbtn {
+        color: white;
+        background-color: rgb(216, 17, 17);
+        margin-right: 9px;
+      }
+    }
+  }
+
+  h2 {
+    text-align: center;
+    font-size: 1em;
+    padding: 5px;
+    border-bottom: 1px solid rgb(177, 175, 175);
+  }
+
+
+
+}
+

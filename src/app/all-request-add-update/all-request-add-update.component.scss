@@ -1,0 +1,68 @@
+@import url(../work-request-form/work-request-form.component.scss);
+
+.ng-invalid.ng-touched {
+  border-color: rgb(255, 153, 0);
+}
+
+.ng-valid.ng-touched {
+  border-color: green;
+}
+
+.invalid-feedback {
+  display: block;
+}
+
+.error {
+  font-size: 0.7em !important;
+  font-weight: 700 !important;
+}
+
+table {
+  thead {
+
+    tr {
+      th {
+        text-align: center;
+        border: 1px solid black;
+        background-color: rgba(211, 210, 210, 0.979);
+      }
+    }
+  }
+}
+
+
+.equal-width-table {
+    width: 100%;
+    table-layout: fixed;
+}
+
+.equal-width-table th,
+.equal-width-table td {
+    text-align: left;
+    vertical-align: middle;
+    word-wrap: break-word;
+}
+
+.equal-width-table th:first-child,
+.equal-width-table td:first-child {
+    width: 6%;
+    text-align: center;
+}
+
+.equal-width-table th:not(:first-child),
+.equal-width-table td:not(:first-child) {
+    width: calc((100% - 6%) / 7);
+}
+
+.form-check {
+  display: flex;
+    align-items: center;
+    padding-right: 16px;
+    input{
+      margin: 0 !important;
+      margin-right: 5px !important;
+    }
+}
+
+
+
