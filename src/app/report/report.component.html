@@ -1,5 +1,5 @@
 <div class="container-fluid">
-    <div class="row p-1 mt-2">
+    <div class="row p-1">
         <div class="col-12 form border-right">
             <h4>Search Filter</h4>
             <div class="d-flex border" style="display: flex; align-items: center;">
@@ -26,7 +26,7 @@
                             </option>
                         </select>
                     </div>
-
+ 
                     <div class="form_field" *ngIf="this.selectedFilterValue === 'Charge Code'">
                         <label for="chargeCode_search">Charge Code: </label>
                         <input type="text" id="chargeCode_search" [(ngModel)]="chargeCode_search"
@@ -45,11 +45,11 @@
                             (ngModelChange)="filteredAutocomplete()">
                     </div>
 
-                    <div class="form_field" *ngIf="this.selectedFilterValue === 'PSL'">
+                    <!-- <div class="form_field" *ngIf="this.selectedFilterValue === 'PSL'">
                         <label for="psl_search">PSL: </label>
                         <input type="text" id="psl_search" [(ngModel)]="psl_search" placeholder="Search by PSL"
                             (ngModelChange)="filteredAutocomplete()">
-                    </div>
+                    </div> -->
 
                     <div class="form_field" *ngIf="this.selectedFilterValue === 'Group'">
                         <label for="group_search">Group: </label>
@@ -76,52 +76,110 @@
         <div class="col-12 col_table">
             <table class="table table-bordered table-hover table-responsive">
                 <thead class="table-light">
+
                     <tr>
-                        <th *ngFor="let header of table_headers">{{ header.label }}</th>
+                        <th>PSL</th>
+                        <th>Test ID</th>
+                        <th>Group</th>
+                        <th>Resource</th>
+                        <th>Tools</th>
+                        <th>Description</th>
+                        <th>Charge Code <br> Work Order</th>
+                        <th>Start Date</th>
+                        <th>End Date</th>
+                        <th>Per Hour Rate</th>
+                        <th>Total Hours</th>
+                        <th>Total Cost</th>
+                        <th>Activity Code</th>
                     </tr>
                 </thead>
-                <tbody>
-                    <ng-container *ngFor="let row of all_task; let i = index">
-                        <tr (click)="toggleRow(i)">
-                            <td *ngFor="let header of table_headers; let j = index" style="color: black; cursor: pointer !important;"
-                                [ngStyle]="{'background-color': isExpanded(i) ? '#d4e8fa' : 'transparent','cursor': 'pointer'}">
-                                <ng-container *ngIf="j === 0" style="text-align: left;">
-                                    <i class="bi" [ngClass]="isExpanded(i) ? 'bi-caret-down' : 'bi-caret-right'">
-                                    </i>
-                                    {{ getRowValue(row, header.key) }}
-                                </ng-container>
-                                <ng-container *ngIf="j !== 0">
-                                    {{ getRowValue(row, header.key)}}
-                                </ng-container>
-                            </td>
-                        </tr>
-                        <ng-container *ngIf="isExpanded(i)">
-                            <tr *ngFor="let detail of getFilteredDetails(row)">
-                                <td *ngFor="let header of table_headers">
-                                    <ng-container *ngIf="header.key === 'taskNumber'">
-                                        <a (click)="routetoTaskInterface(getRowValue(detail, header.key))" 
-                                        style="color:rgb(3, 3, 212); font-weight: 700; font-size: 1.1em; cursor: pointer;">
-                                            {{ getRowValue(detail, header.key) }}
-                                        </a>
-                                    </ng-container>
-                                    <ng-container  *ngIf="header.key != 'taskNumber'">
-                                        {{ getRowValue(detail, header.key) }}
-                                    </ng-container>
-                                </td>
-                            </tr>
-                        </ng-container>
 
+                <tbody>
+                    <ng-container *ngFor="let psl of filteredTasks; let pslIndex = index">
+                        <!-- PSL Row -->
+                        <tr class="expandable" (click)="togglePSL(pslIndex)"
+                            [ngStyle]="{'background-color': isPSLExpanded(pslIndex) ? '#d4e8fa' : '#e9ede8'}">
+                            <td>
+                                <i class="bi" [ngClass]="isPSLExpanded(pslIndex) ? 'bi-caret-down' : 'bi-caret-right'">
+                                </i>
+                                {{psl.psl}}
+                            </td>
+                            <td>-</td>
+                            <td>-</td>
+                            <td>-</td>
+                            <td>-</td>
+                            <td>-</td>
+                            <td>-</td>
+                            <td>-</td>
+                            <td>-</td>
+                            <td>-</td>
+                            <td>{{psl.hour}}</td>
+                            <td>{{psl.cost}}</td>
+                            <td>-</td>
+                        </tr>
+
+                        <ng-container *ngIf="expandedPSL.has(pslIndex)">
+                            <ng-container *ngFor="let group of psl.data;">
+                                <ng-container *ngFor="let tasks of group.taskNumbers;">
+                                    <tr class="expandable" (click)="toggleTask(pslIndex, tasks[0]?.taskNumber)"
+                                        [ngStyle]="{'background-color': isTaskExpanded(pslIndex, tasks[0]?.taskNumber) ? '#c9ffc7' : '#eef5ed'}">
+                                        <td style="background-color: white !important;"></td>
+                                        <td style="padding-left: 20px;">
+                                            <i class="bi"
+                                                [ngClass]="isTaskExpanded(pslIndex, tasks[0]?.taskNumber) ? 'bi-caret-down' : 'bi-caret-right'"
+                                                style="margin-right: 6px;"></i>
+                                            {{tasks[0]?.taskNumber}}
+                                        </td>
+                                        <td>-</td>
+                                        <td>-</td>
+                                        <td>-</td>
+                                        <td>-</td>
+                                        <td>-</td>
+                                        <td>-</td>
+                                        <td>-</td>
+                                        <td>{{tasks[0]?.perHourRate}}</td>
+                                        <td>{{group.hour}}</td>
+                                        <td>{{group.cost}}</td>
+                                        <td>-</td>
+                                    </tr>
+
+                                    <ng-container *ngIf="isTaskExpanded(pslIndex, tasks[0]?.taskNumber)">
+                                        <tr *ngFor="let task of tasks">
+                                            <td></td>
+                                            <td>
+                                                <a (click)="routetoTaskInterface(tasks[0]?.taskNumber)"
+                                                    style="color:rgb(3, 3, 212); font-weight: 700; font-size: 1.1em; cursor: pointer;">
+                                                    {{tasks[0]?.taskNumber}}
+                                                </a>
+                                            </td>
+                                            <td>{{task.group}}</td>
+                                            <td>{{task.resource}}</td>
+                                            <td>{{task.tool}}</td>
+                                            <td>{{task.description}}</td>
+                                            <td>{{task.charge_Code}}</td>
+                                            <td>{{task.startDate?.split("T")[0]}}</td>
+                                            <td>{{task.endDate?.split("T")[0]}}</td>
+                                            <td>{{task.perHourRate}}</td>
+                                            <td>{{task.hour}}</td>
+                                            <td>{{task.cost}}</td>
+                                            <td>{{task.activity_Code}}</td>
+                                        </tr>
+                                    </ng-container>
+                                </ng-container>
+                            </ng-container>
+                        </ng-container>
                     </ng-container>
                 </tbody>
+
                 <tfoot>
                     <tr>
-                        <td [attr.colspan]="table_headers.length" class="text-end p-2">
+                        <td [attr.colspan]="13" class="text-end p-2">
                             Total: {{ totalRecords }} records across {{ totalPSLs }} PSLs |
                             Grand Total: ${{ grandTotal | number:'1.0-0' }}
                         </td>
                     </tr>
                 </tfoot>
-
+                
             </table>
         </div>
     </div>

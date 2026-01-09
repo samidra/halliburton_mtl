@@ -22,6 +22,7 @@ export class AllFacilityAddUpdateComponent {
   searchText: any;
   constructor(private titleService: Title,
     private api_service: AllApiServiceService,
+    private common_service: CommonServiceService,
     private ngZone: NgZone,
     public dialog: MatDialog) {
     this.titleService.setTitle('Add/Update All Facilities | MTL HALLIBURTON');
@@ -72,11 +73,11 @@ export class AllFacilityAddUpdateComponent {
     }
     const search = this.searchText.toLowerCase();
     return this.all_facility.filter((item: any) =>
-       Object.values(item)
+      Object.values(item)
         .some((value: any) => {
-        if (value === null || value === undefined) return false;
-        return value.toString().toLowerCase().includes(search);
-      })
+          if (value === null || value === undefined) return false;
+          return value.toString().toLowerCase().includes(search);
+        })
     );
   }
 
@@ -87,7 +88,7 @@ export class AllFacilityAddUpdateComponent {
     } else {
       this.isLoading = true
     }
-      this.pollingInterval = null
+    this.pollingInterval = null
 
     this.api_service.Get_all_resource_dropdown().subscribe({
       next: (res: any) => {
@@ -128,10 +129,10 @@ export class AllFacilityAddUpdateComponent {
 
   viewCalibrationsettings(facility_id: any) {
     const dialogRef = this.dialog.open(calibration_details, {
-          data: {facility_id : facility_id },
-          width: '590px',
-          panelClass: 'custom-dialog-container',
-        })
+      data: { facility_id: facility_id },
+      width: '590px',
+      panelClass: 'custom-dialog-container',
+    })
   }
 
   delete_facility(facility: any, facilityID: any) {
@@ -148,6 +149,14 @@ export class AllFacilityAddUpdateComponent {
       this.isLoading = true
       this.startPolling()
     })
+  }
+
+  downloadFile(file: any) {
+    if (file != '') {
+      this.common_service.displaySuccess('Downloaded Sucessfully.')
+    } else {
+      this.common_service.displayWarning('No file available to download.')
+    }
   }
 
 }
@@ -242,17 +251,21 @@ export class AllFacilityAddUpdateComponent {
 
                         <div class="form_field" *ngIf="facility_form.get('link_or_file')?.value === 'link'">
                             <label for="">Add Link:</label>
-                            <input type="text" placeholder="Add Facility Policy Link" class="form-control"
+                            <input type="text" placeholder="Add Facility Policy Link (Example: https://example.com)" class="form-control"
                                 formControlName="link" />
                             <div *ngIf="facility_form.get('link')?.invalid && facility_form.get('link')?.touched"
                                 class="text-danger error">
-                                Link is required.
+                                <!-- Link is required. -->
+                                 <small *ngIf="facility_form.get('link')?.hasError('required')">Link is required. Please use a valid URL like https://example.com or http://example.com.</small>
+                                 <small *ngIf="facility_form.get('link')?.hasError('pattern')">
+                                          Invalid URL format. Please use a valid URL like <strong>https://example.com</strong> or <strong>http://example.com</strong>.
+                                 </small>
                             </div>
                         </div>
                         <div class="form_field" *ngIf="facility_form.get('link_or_file')?.value === 'file'">
                             <label for="">Attach File:</label>
                             <input type="file" placeholder="Add Facility Policy File" class="form-control"
-                                formControlName="file" />
+                                formControlName="file" (change)="onFileChange($event)"/>
                             <div *ngIf="facility_form.get('file')?.invalid && facility_form.get('file')?.touched"
                                 class="text-danger error">
                                 File is required.
@@ -386,7 +399,7 @@ export class facility {
     this.action_type = data.action_type
     this.dropdownData = data?.data
     this.userlistOptions = this.dropdownData?.users
-    
+
     this.facility_form = this.fb.group({
       facility: ['', Validators.required],
       discription: ['', Validators.required],
@@ -408,7 +421,9 @@ export class facility {
       const fileAccess = this.facility_form.get('file_access');
 
       if (value === 'link') {
-        linkControl?.setValidators([Validators.required]);
+        linkControl?.setValidators([Validators.required, Validators.pattern(/^https?:\/\/[^\s/$.?#].[^\s]*$/i)]);
+
+        this.fileName = ''
         fileControl?.setValue('');
         fileAccess?.setValue('Everyone');
         fileControl?.clearValidators();
@@ -416,9 +431,10 @@ export class facility {
       }
       else if (value === 'file') {
         linkControl?.setValue('');
+        linkControl?.clearValidators();
+
         fileControl?.setValidators([Validators.required]);
         fileAccess?.setValidators([Validators.required]);
-        linkControl?.clearValidators();
       }
 
       linkControl?.updateValueAndValidity();
@@ -433,32 +449,54 @@ export class facility {
 
   }
 
-  facility_details: any
-  get_Facility_details(facility_id:any){
-     this.api_service.get_Facility_details(facility_id).subscribe({
-       next: (res: any) => {
-         this.facility_details = res[0]
-         this.managementuserList = this.facility_details.managementUserIDs != null ? this.facility_details.managementUserIDs?.split(',') : [];
+  selectedFile!: File;
+  fileName:any
+  fileBase64: string = '';
+   onFileChange(event:any) {
+    const file = event.target.files[0];
+    console.log(file)
+    if (file) {
+      this.fileName = file.name
+      let selectedFile = file;
+      this.convertToBase64(selectedFile);
+    }
+  }
 
-         this.facility_form.patchValue({
-           facility: this.facility_details?.facility,
-           discription: this.facility_details?.longDescription,
-           link: this.facility_details?.facilityPolicyLink,
-           file: this.facility_details?.longDescription,
-           file_access: this.facility_details?.fileAccess,
-           policy_checkbox: this.facility_details?.agreementRequired,
-           contact: this.facility_details?.contactName,
-           mail_notification: this.facility_details?.emailNotification,
-           furture_check: this.facility_details?.futureCheck,
-           interval_to_check: this.facility_details?.interval,
-         });
-          if(this.facility_details?.facilityPolicyLink !== ''){
-            this.facility_form.get('link_or_file')?.setValue('link')
-          }else{
-            this.facility_form.get('link_or_file')?.setValue('file')
-          }
-       },
-      
+  convertToBase64(file: File) {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => {
+      this.fileBase64 = reader.result as string;
+      console.log('File ready for upload:', this.fileBase64);
+    }
+  }
+  
+  facility_details: any
+  get_Facility_details(facility_id: any) {
+    this.api_service.get_Facility_details(facility_id).subscribe({
+      next: (res: any) => {
+        this.facility_details = res[0]
+        this.managementuserList = this.facility_details.managementUserIDs != null ? this.facility_details.managementUserIDs?.split(',') : [];
+
+        this.facility_form.patchValue({
+          facility: this.facility_details?.facility,
+          discription: this.facility_details?.longDescription,
+          link: this.facility_details?.facilityPolicyLink,
+          file: this.facility_details?.longDescription,
+          file_access: this.facility_details?.fileAccess,
+          policy_checkbox: this.facility_details?.agreementRequired,
+          contact: this.facility_details?.contactName,
+          mail_notification: this.facility_details?.emailNotification,
+          furture_check: this.facility_details?.futureCheck,
+          interval_to_check: this.facility_details?.interval,
+        });
+        if (this.facility_details?.facilityPolicyLink !== '') {
+          this.facility_form.get('link_or_file')?.setValue('link')
+        } else {
+          this.facility_form.get('link_or_file')?.setValue('file')
+        }
+      },
+
       error: (err) => {
         console.error('Error fetching tasks:', err);
       }
@@ -489,20 +527,20 @@ export class facility {
     }
   }
 
-selectOption(option: string): void {
-  if (!option || option === 'No data with this search') {
+  selectOption(option: string): void {
+    if (!option || option === 'No data with this search') {
+      this.facility_form.get('user_id_management')?.setValue('');
+      this.filteredUsers = [];
+      return;
+    }
+    if (!this.managementuserList?.includes(option)) {
+      this.managementuserList.push(option);
+    } else {
+      this.common_service.displayWarning('User already exists');
+    }
     this.facility_form.get('user_id_management')?.setValue('');
     this.filteredUsers = [];
-    return;
   }
-  if (!this.managementuserList?.includes(option)) {
-    this.managementuserList.push(option);
-  } else {
-    this.common_service.displayWarning('User already exists');
-  }
-  this.facility_form.get('user_id_management')?.setValue('');
-  this.filteredUsers = [];
-}
 
   close() {
     this.dialogRef.close()
@@ -514,16 +552,17 @@ selectOption(option: string): void {
         this.common_service.displayWarning('Atleast one management user is required.')
         return
       }
-      this.Is_spinner =  true
+      this.Is_spinner = true
       const managementuserList = this.managementuserList.join(', ')
       const body = {
         "facilityID": this.action_type === 'Update Facility' ? Number(this.facility_id) : 0,
         "facility": this.facility_form.get('facility')?.value,
         "longDescription": this.facility_form.get('discription')?.value,
         "managementUserIDs": managementuserList,
-        "fileAccess":  this.facility_form.get('link_or_file')?.value === 'file' ? this.facility_form.get('file_access')?.value : '',
+        "fileAccess": this.facility_form.get('link_or_file')?.value === 'file' ? this.facility_form.get('file_access')?.value : '',
         "facilityPolicyLink": this.facility_form.get('link')?.value,
-        // "facilityPolicyFile":  this.facility_form.get('file')?.value ,
+        "file": this.facility_form.get('link_or_file')?.value === 'file' ? this.fileBase64 : '',
+        "fileName": this.facility_form.get('link_or_file')?.value === 'file' ? this.fileName : '',
         "agreementRequired": this.facility_form.get('policy_checkbox')?.value,
         "contactID": '',
         "contactName": this.facility_form.get('contact')?.value,
@@ -532,7 +571,7 @@ selectOption(option: string): void {
         "emailNotification": this.facility_form.get('mail_notification')?.value,
         "userID": 'H317697'
       }
-      
+
       if (this.action_type != 'Update Facility') {
         this.Add_new_facility(body);
       } else if (this.action_type === 'Update Facility') {
@@ -779,7 +818,7 @@ export class delete_facility {
 
 export class calibration_details {
   facility_form !: FormGroup
-  facility_id:any
+  facility_id: any
   constructor(
     private api_service: AllApiServiceService,
     public common_service: CommonServiceService,
@@ -793,23 +832,23 @@ export class calibration_details {
       interval_to_check: [''],
     });
 
-      this.facility_id = data.facility_id
-      this.get_Facility_details(this.facility_id)
+    this.facility_id = data.facility_id
+    this.get_Facility_details(this.facility_id)
   }
 
   facility_details: any
-  get_Facility_details(facility_id:any){
-     this.api_service.get_Facility_details(facility_id).subscribe({
-       next: (res: any) => {
-         this.facility_details = res[0]
-         this.facility_form.patchValue({
-           contact: this.facility_details?.contactName,
-           mail_notification: this.facility_details?.emailNotification,
-           furture_check: this.facility_details?.futureCheck,
-           interval_to_check: this.facility_details?.interval,
-         });
-       },
-      
+  get_Facility_details(facility_id: any) {
+    this.api_service.get_Facility_details(facility_id).subscribe({
+      next: (res: any) => {
+        this.facility_details = res[0]
+        this.facility_form.patchValue({
+          contact: this.facility_details?.contactName,
+          mail_notification: this.facility_details?.emailNotification,
+          furture_check: this.facility_details?.futureCheck,
+          interval_to_check: this.facility_details?.interval,
+        });
+      },
+
       error: (err) => {
         console.error('Error fetching tasks:', err);
       }

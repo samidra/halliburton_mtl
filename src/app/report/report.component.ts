@@ -6,32 +6,36 @@ import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
 import { AllApiServiceService } from '../Services/all-api-service.service';
 import { Router } from '@angular/router';
+import { CommonServiceService } from '../Services/common-service.service';
 
-interface RowDetails {
-  PSL: string;
-  Group: string;
-  Tools: string;
-  Resource: string;
-  Test_ID: string;
-  Description: string;
-  Start_Date: string;
-  End_Date: string;
-  Hours: any;
-  Per_Hour_Rate: any;
-  Total_Cost: any;
-  Charge_Code: string;
-  Activity_Code: string;
-}
-
-interface Row {
+interface Task {
+  taskNumber: string;
+  description: string;
+  startDate: string;
+  endDate: string;
+  hour: number;
+  cost: number;
+  activity_Code: string;
+  charge_Code: string;
+  group: string;
+  resource: string;
+  tool: string;
+  perHourRate: number;
   psl: string;
-  totalHours: any;
-  totalCosts: any;
-  details: RowDetails[];
-
-  [key: string]: string | number | RowDetails[] | undefined;
 }
 
+interface TaskGroup {
+  hour: number;
+  cost: number;
+  taskNumbers: Task[][];
+}
+
+interface PSLData {
+  psl: string;
+  hour: number;
+  cost: number;
+  data: TaskGroup[];
+}
 
 @Component({
   selector: 'app-report',
@@ -52,6 +56,7 @@ export class ReportComponent {
   private pollingInterval: ReturnType<typeof setInterval> | null = null;
   constructor(private titleService: Title,
     private api_service: AllApiServiceService,
+    private commonService:CommonServiceService,
     private datePipe: DatePipe,
     private router: Router,
     private ngZone: NgZone) {
@@ -69,8 +74,9 @@ export class ReportComponent {
     }
   }
 
-  filterOptionList: any = ['Charge Code', 'Resource', 'Tool', 'PSL', 'Group',]
+  filterOptionList: any = ['Charge Code', 'Resource', 'Tool', 'Group',]
   selectedFilterValue: any = 'Select Filter Option'
+  expandedIndexes: number[] = [];
   getfilterselectedOption(event: any) {
     this.selectedFilterValue = event.target.value;
     console.log('Selected filter option:', this.selectedFilterValue);
@@ -88,13 +94,19 @@ export class ReportComponent {
   }
 
   isLoading: boolean = true;
-  all_task: any = []
+  all_task: PSLData[] = []
+  taskList: Task[] = []
   Get_Charge_Out() {
-
     this.api_service.Get_Charge_Out().subscribe({
       next: (res: any) => {
         this.all_task = res;
-        console.log(this.all_task)
+        this.filteredTasks = this.all_task;
+        this.taskList = this.all_task.flatMap((task: any) => {
+          return task.data.flatMap((taskData: any) => {
+            return taskData.taskNumbers.flatMap((item: any[]) => item);
+          })
+        });
+        // console.log('All Tasks Data:', this.taskList);
         // this.filteredAutocomplete()
         // this.filteredTasks = this.all_task.flatMap((task: any) =>task.data)
         this.isLoading = false;
@@ -106,123 +118,138 @@ export class ReportComponent {
     });
   }
 
-  filterByDateRange() {
+  // --------------------------------------------------------------------
 
-    if (!Array.isArray(this.all_task) || this.all_task.length === 0) {
-      console.error('all_task is not initialized or is empty');
-      this.filteredTasks = [];
-      this.expandedIndexes = [];
-      return;
-    }
-    const start: any = this.datePipe.transform(this.startDate, 'yyyy-MM-dd');
-    const end: any = this.datePipe.transform(this.endDate, 'yyyy-MM-dd');
-    if (start > end) {
-      console.error('Start date cannot be later than end date.');
-      return;
-    }
+filterByDateRange() {
 
-    this.filteredTasks = this.all_task.flatMap((task: any) =>
-      task.data.filter((item: any) => {
-        const taskStart: any = this.datePipe.transform(item.startDate, 'yyyy-MM-dd');
-        const taskEnd: any = this.datePipe.transform(item.endDate, 'yyyy-MM-dd');
-
-        const isOverlapping = (taskStart <= end) && (taskEnd >= start);
-
-        return isOverlapping;
-      })
-    );
-
-    console.log('Filtered tasks by date range:', this.filteredTasks);
-
-    this.expandedIndexes = this.filteredTasks
-      .map((task: any, index: number) => {
-        this.button_name = "Collapse All";
-        return index;
-      });
+  if (!this.startDate || !this.endDate) {
+    this.commonService.displayWarning('Please enter both start date and end date.');
+    return;
   }
 
-  filteredTasks: any[] = [];
+  if (!Array.isArray(this.all_task) || this.all_task.length === 0) {
+    this.commonService.displayWarning('all_task is not initialized or is empty');
+    this.filteredTasks = [];
+    this.expandedIndexes = [];
+    return;
+  }
+
+  if (this.pollingInterval) {
+      clearInterval(this.pollingInterval!);
+      this.pollingInterval = null;
+      console.log('Polling stopped due to active filters.');
+  }
+
+  const start: any = this.datePipe.transform(this.startDate, 'yyyy-MM-dd');
+  const end: any = this.datePipe.transform(this.endDate, 'yyyy-MM-dd');
+
+  if (start > end) {
+    this.commonService.displayWarning('Start date cannot be later than end date.');
+    return;
+  }
+
+  this.filteredTasks = this.all_task.flatMap((task: any) =>
+    task.data
+      .map((dataItem: any) => {
+        const filteredTaskNumbers = dataItem.taskNumbers.filter((task: any) => {
+          console.log('Checking task dates:', task);
+          console.log('Checking task dates:', task.startDate, task.endDate);
+          const taskStart: any = this.datePipe.transform(task.startDate?.split("T")[0], 'yyyy-MM-dd');
+          const taskEnd: any = this.datePipe.transform(task.endDate?.split("T")[0], 'yyyy-MM-dd');
+          const isOverlapping = (taskStart <= end) && (taskEnd >= start);
+          return isOverlapping;
+        });
+        return {
+          ...dataItem,
+          taskNumbers: filteredTaskNumbers
+        };
+      })
+      .filter((dataItem: any) => dataItem.taskNumbers.length > 0)
+  ).filter((task: any) => task.data.length > 0);
+
+  console.log('Filtered tasks by date range:', this.filteredTasks);
+
+  // this.expandedIndexes = this.filteredTasks.map((task: any, index: number) => {
+  //   this.button_name = "Collapse All";
+  //   return index;
+  // });
+}
+
+  filteredTasks: any = []
   filteredAutocomplete() {
-    if (!Array.isArray(this.all_task) || this.all_task.length === 0) {
-      console.error('all_task is not initialized or is empty');
-      this.filteredTasks = [];
-      this.expandedIndexes = [];
+   
+    if (!this.chargeCode_search && !this.Resource_search && !this.Tool_search && !this.group_search) {
+      this.filteredTasks = this.all_task;
+       this.button_name = "Collapse All"
       return;
     }
-    this.filteredTasks = this.all_task.flatMap((task: any) =>
-      task.data.filter((item: any) => {
-        let matchesChargeCode = true;
-        let matchesResource = true;
-        let matchesTool = true;
-        let matchesPSL = true;
-        let matchesGroup = true;
 
-        // Charge Code filtering (case insensitive)
-        if (this.chargeCode_search.trim() !== '') {
-          matchesChargeCode = item.charge_Code && item.charge_Code.toLowerCase().includes(this.chargeCode_search.toLowerCase());
-        }
-        if (this.Resource_search.trim() !== '') {
-          matchesResource = item.resource && item.resource.toLowerCase().includes(this.Resource_search.toLowerCase());
-        }
-        if (this.Tool_search.trim() !== '') {
-          matchesTool = item.tool && item.tool.toLowerCase().includes(this.Tool_search.toLowerCase());
-        }
-        if (this.psl_search.trim() !== '') {
-          matchesPSL = item.psl && item.psl.toLowerCase().includes(this.psl_search.toLowerCase());
-        }
-        if (this.group_search.trim() !== '') {
-          matchesGroup = item.group && item.group.toLowerCase().includes(this.group_search.toLowerCase());
-        }
-        if (this.pollingInterval) {
-          clearInterval(this.pollingInterval!);
-          this.pollingInterval = null;
-          console.log('Polling stopped due to active filters.');
-        }
+    if (this.pollingInterval) {
+      clearInterval(this.pollingInterval!);
+      this.pollingInterval = null;
+      console.log('Polling stopped due to active filters.');
+    }
 
-        return matchesChargeCode && matchesResource && matchesTool && matchesPSL && matchesGroup;
-      })
-    );
+    if (this.selectedFilterValue) {
+      const searchValue = this.selectedFilterValue === 'Charge Code' ? this.chargeCode_search : 
+                          this.selectedFilterValue === 'Resource' ? this.Resource_search:
+                          this.selectedFilterValue === 'Tool' ? this.Tool_search:
+                          this.selectedFilterValue === 'Group' ? this.group_search: '';
+                          // this.selectedFilterValue === 'PSL' ? this.Tool_search: '';
 
-    console.log('Filtered tasks:', this.filteredTasks);
-    this.expandedIndexes = this.filteredTasks
-      .map((task: any, index: number) => {
-        this.button_name = "Collapse All"
-        return index;
-      });
+      const fieldName = this.selectedFilterValue === 'Charge Code' ? 'charge_Code' : 
+                        this.selectedFilterValue === 'Resource'? 'resource':
+                        this.selectedFilterValue === 'Tool'? 'tool':
+                        this.selectedFilterValue === 'Group'? 'group':'group';
+                        // this.selectedFilterValue === 'Tool'? 'tool':'tool';
+
+      console.log('Filtering by', fieldName, 'with value:', searchValue);
+      if (!searchValue) return; 
+      this.filteredTasks = this.all_task.map((pslItem, pslIndex) => {
+        return {
+          ...pslItem,
+          data: pslItem.data.map(dataItem => {
+            return {
+              ...dataItem,
+              taskNumbers: dataItem.taskNumbers
+                .map(taskArray => {
+                  return taskArray.filter(task =>
+                    task[fieldName].toLowerCase().includes(searchValue.toLowerCase())
+                  );
+                })
+                .filter(taskArray => taskArray.length > 0)
+            };
+          }).filter(dataItem => dataItem.taskNumbers.length > 0)
+        };
+      }).filter(pslItem => pslItem.data.length > 0);
+      if(this.filteredTasks.length === 0){
+                this.button_name = "Expand All"
+              }
+      this.updateExpandedTasks(fieldName, searchValue);
+    }
   }
 
-  getFilteredDetails(row: any): any[] {
-    if (!row?.data) return [];
-
-    return row.data.filter((item: any) => {
-      let matchesChargeCode = true;
-      let matchesResource = true;
-      let matchesTool = true;
-      let matchesPSL = true;
-      let matchesGroup = true;
-
-      if (this.chargeCode_search.trim() !== '') {
-        matchesChargeCode = item.charge_Code?.toLowerCase().includes(this.chargeCode_search.toLowerCase());
-      }
-      if (this.Resource_search.trim() !== '') {
-        matchesResource = item.resource?.toLowerCase().includes(this.Resource_search.toLowerCase());
-      }
-      if (this.Tool_search.trim() !== '') {
-        matchesTool = item.tool?.toLowerCase().includes(this.Tool_search.toLowerCase());
-      }
-      if (this.psl_search.trim() !== '') {
-        matchesPSL = item.psl?.toLowerCase().includes(this.psl_search.toLowerCase());
-      }
-      if (this.group_search.trim() !== '') {
-        matchesGroup = item.group?.toLowerCase().includes(this.group_search.toLowerCase());
-      }
-
-      return matchesChargeCode && matchesResource && matchesTool && matchesPSL && matchesGroup;
+  updateExpandedTasks(fieldName: string, searchValue: string) {
+    this.filteredTasks.forEach((pslItem: { data: any[]; }, pslIndex: number) => {
+      pslItem.data.forEach((dataItem: { taskNumbers: any[]; }) => {
+        dataItem.taskNumbers.forEach((taskArray: any[]) => {
+          taskArray.forEach((task: { [x: string]: string; taskNumber: string; }) => {
+            if (task[fieldName].toLowerCase().includes(searchValue.toLowerCase())) {
+              this.expandedPSL.add(pslIndex);
+              this.expandedTaskMap.set(pslIndex, task.taskNumber);
+              if(this.filteredTasks.length !== 0){
+                this.button_name = "Collapse All"
+              }
+            }
+          });
+        });
+      });
     });
   }
 
   remove_filter() {
     this.selectedFilterValue = 'Select Filter Option'
+    this.button_name = "Expand All"
     this.expandedIndexes = [];
     this.filteredTasks = [];
     this.chargeCode_search = '';
@@ -235,54 +262,94 @@ export class ReportComponent {
     this.startPolling();
   }
 
-  expandedIndexes: number[] = [];
-  table_headers = [
-    { key: 'psl', label: 'PSL' },
-    { key: 'taskNumber', label: 'Test ID' },
-    { key: 'group', label: 'Group' },
-    { key: 'resource', label: 'Resource' },
-    { key: 'tool', label: 'Tools' },
-    { key: 'description', label: 'Description' },
-    { key: 'charge_Code', label: 'Charge Code' },
-    { key: 'startDate', label: 'Start Date' },
-    { key: 'endDate', label: 'End Date' },
-    { key: 'perHourRate', label: 'Per Hour Rate' },
-    { key: 'hour', label: 'Total Hours' },
-    { key: 'cost', label: 'Total Cost' },
-    { key: 'activity_Code', label: 'Activity Code' },
-  ]
-
-  toggleRow(index: number) {
-    const pos = this.expandedIndexes.indexOf(index);
-    // this.expandedIndexes = [];
-    this.filteredTasks = [];
-    if (pos > -1) {
-      this.expandedIndexes.splice(pos, 1);
-      this.button_name = "Expand All"
-    } else {
-      this.expandedIndexes.push(index);
-      this.filteredTasks = this.all_task[index].data
-      this.button_name = "Collapse All"
-    }
-  }
-
-  isExpanded(index: number): boolean {
-    return this.expandedIndexes.includes(index);
-  }
-
-  getRowValue(row: Row | RowDetails, key: string): any {
-    const value = row[key as keyof typeof row];
-    if (key === 'startDate' || key === 'endDate') {
-      return this.datePipe.transform(value, 'yyyy-MM-dd') ?? '-';
-    }
-    return value ?? '-';
-  }
-
   routetoTaskInterface(value: any): void {
     const taskNumber = value;
     if (taskNumber) {
       this.router.navigate([`tech-interface/${taskNumber}`]);
     }
+  }
+
+  exportToExcel(): void {
+    const rows: any[] = [];
+    this.all_task.forEach((pslItem: any) => {
+
+      return pslItem.data.forEach((dataItem: any) => {
+
+        return dataItem.taskNumbers.forEach((item: any[]) => {
+
+          item.forEach((task: any) => {
+            rows.push({
+              PSL: task.psl,
+              TaskNumber: task.taskNumber,
+              Description: task.description,
+              StartDate: task.startDate,
+              EndDate: task.endDate,
+              Hours: task.hour,
+              PerHourRate: task.perHourRate,
+              Cost: task.cost,
+              ChargeCode: task.charge_Code,
+              ActivityCode: task.activity_Code,
+              Resource: task.resource,
+              Tool: task.tool,
+              Group: task.group
+            });
+          })
+        })
+
+      });
+    });
+
+    if (rows.length === 0) {
+      alert('No tasks available to download.');
+      return;
+    }
+
+    const ws: XLSX.WorkSheet = XLSX.utils.json_to_sheet(rows);
+    const wb: XLSX.WorkBook = XLSX.utils.book_new();
+
+    XLSX.utils.book_append_sheet(wb, ws, 'AllTasks');
+
+    XLSX.writeFile(wb, 'AllTasks.xlsx');
+  }
+
+  expandedPSL: Set<number> = new Set();
+  togglePSL(index: number) {
+    if (this.expandedPSL.has(index)) {
+      this.expandedPSL.delete(index);
+    } else {
+      this.expandedPSL.add(index);
+    }
+  }
+
+  isPSLExpanded(index: number): boolean {
+    return this.expandedPSL.has(index);
+  }
+
+  button_name = "Expand All"
+  expandAll() {
+    for (let i = 0; i < this.all_task.length; i++) {
+      this.expandedPSL.add(i);
+      this.button_name = "Collapse All"
+    }
+  }
+
+  collapseAll() {
+    this.expandedPSL.clear()
+    this.button_name = "Expand All"
+  }
+
+  expandedTaskMap: Map<number, string> = new Map();
+  toggleTask(pslIndex: number, taskNumber: any) {
+    const currentExpanded = this.expandedTaskMap.get(pslIndex);
+    if (currentExpanded === taskNumber) {
+      this.expandedTaskMap.delete(pslIndex);
+    } else {
+      this.expandedTaskMap.set(pslIndex, taskNumber);
+    }
+  }
+
+  isTaskExpanded(pslIndex: number, taskNumber: any): boolean {
+    return this.expandedTaskMap.get(pslIndex) === taskNumber;
   }
 
   get totalRecords(): number {
@@ -300,35 +367,4 @@ export class ReportComponent {
     }, 0);
   }
 
-  button_name = "Expand All"
-  expandAll() {
-    if (this.expandedIndexes.length === 0) {
-      for (let i = 0; i < this.all_task.length; i++) {
-        this.expandedIndexes.push(i);
-        this.button_name = "Collapse All"
-      }
-    }
-  }
-
-  collapseAll() {
-    this.expandedIndexes = [];
-    this.button_name = "Expand All"
-  }
-
-  exportToExcel(): void {
-
-    this.filteredTasks = this.all_task.flatMap((task: any) => {
-      return task.data.filter((item: any) => {
-        return item.subtasks || item;
-      });
-    });
-    if (this.filteredTasks.length === 0) {
-      alert('No tasks available to download.');
-      return;
-    }
-    const ws: XLSX.WorkSheet = XLSX.utils.json_to_sheet(this.filteredTasks);
-    const wb: XLSX.WorkBook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'AllTasks');
-    XLSX.writeFile(wb, 'AllTasks.xlsx');
-  }
 }

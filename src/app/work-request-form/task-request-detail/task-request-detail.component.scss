@@ -106,7 +106,7 @@ h4 {
 
     table {
       margin-top: 7px;
-      table-layout: fixed;
+      // table-layout: fixed;
 
       a {
         color: rgb(95, 137, 250);
@@ -118,15 +118,18 @@ h4 {
         }
       }
 
+      .theadbottom{
+        text-align: center !important;
+        
+      }
       thead,
       tbody {
-
         th {
           font-size: 0.7em;
           font-weight: 700;
           color: #4b4848;
           padding: 5px;
-          width: 30%;
+          // width: 30%;
           word-wrap: break-word;
         }
 
@@ -141,7 +144,17 @@ h4 {
             font-size: 1em;
             font-weight: 700;
           }
+          i{
+            font-size: 1.2em;
+            font-weight: 700 !important;
+          }
+          i:hover{
+            color: rgb(207, 3, 3);
+            cursor: pointer;
+          }
         }
+
+         
       }
     }
 
@@ -362,17 +375,4 @@ h4 {
 ::ng-deep .swal2-popup {
   font-size: 0.8em !important;
   font-weight: 600 !important;
-}
-
-.download_td{
-  display: flex; 
-  justify-content: center;
-  font-size: 0.95em !important;
-  color: blue !important;
-  font-weight: 700 !important;
-  &:hover{
-    background-color: #ebeaead7;
-    cursor: pointer;
-    font-size: 1em !important;
-  }
 }

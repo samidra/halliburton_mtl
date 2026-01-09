@@ -9,9 +9,10 @@ import { AllApiServiceService } from '../../Services/all-api-service.service';
 import { LocalStorageService } from '../../Services/local-storage.service';
 import { Observable, Subscriber } from 'rxjs';
 import Swal from 'sweetalert2';
+import { CdkDragPlaceholder } from "@angular/cdk/drag-drop";
 @Component({
   selector: 'app-task-request-detail',
-  imports: [CommonModule],
+  imports: [CommonModule, CdkDragPlaceholder],
   templateUrl: './task-request-detail.component.html',
   styleUrl: './task-request-detail.component.scss'
 })
@@ -95,6 +96,25 @@ export class TaskRequestDetailComponent {
         this.get_task_request_details()
         window.scrollTo(0, 0)
       }
+    })
+  }
+
+  delete_Request(delete_type: any, name: any) {
+    const deleteRef = this.dialog.open(delete_request, {
+      data: {
+        delete_type: delete_type,
+        taskId: this.task_number,
+        name: name,
+        // UserID: 'H317697'
+      },
+      width: '300px',
+      panelClass: 'custom-dialog-container',
+      disableClose: true,
+    })
+
+    deleteRef.afterClosed().subscribe(result => {
+      this.get_task_request_details()
+      window.scrollTo(0, 0)
     })
   }
 
@@ -207,32 +227,32 @@ export class TaskRequestDetailComponent {
     this.router.navigate([`calendar`, this.request_number, item.taskId]);
   }
 
-download_file(fileName: any) {
-  this.isLoading = true
-  this.apiservice.download_file(fileName).subscribe({
-    next: (res: any) => {
-      this.isLoading = false
-      const blob = new Blob([res], { type: res.type || 'application/octet-stream' });
-      // Create a download link
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = fileName;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      window.URL.revokeObjectURL(url);
-      this.common_service.displaySuccess(`${fileName} is downloaded sucessfully.`)
-    },
-    error: (err) => {
-      this.isLoading = false
-      console.error("File download failed:", err);
-    }
-  });
-}
-
-
+  download_file(fileName: any) {
+    this.isLoading = true
+    this.apiservice.download_file(fileName).subscribe({
+      next: (res: any) => {
+        this.isLoading = false
+        const blob = new Blob([res], { type: res.type || 'application/octet-stream' });
+        // Create a download link
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = fileName;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(url);
+        this.common_service.displaySuccess(`${fileName} is downloaded sucessfully.`)
+      },
+      error: (err) => {
+        this.isLoading = false
+        console.error("File download failed:", err);
+      }
+    });
   }
+
+
+}
 
 // Modify Task Details
 @Component({
@@ -584,15 +604,15 @@ export class modify_details {
       }
     });
 
-    if(this.task_data?.charge_Codes !=''){
-        this.modify_form.get('Select_Charge_Code_or_Work_Order')?.setValue('chargeCode')
-       this.chargeCodeList =  this.task_data?.charge_Codes != '' ? this.task_data?.charge_Codes?.split(',') : []
+    if (this.task_data?.charge_Codes != '') {
+      this.modify_form.get('Select_Charge_Code_or_Work_Order')?.setValue('chargeCode')
+      this.chargeCodeList = this.task_data?.charge_Codes != '' ? this.task_data?.charge_Codes?.split(',') : []
     }
 
-    if(this.task_data?.work_Orders !=''){
+    if (this.task_data?.work_Orders != '') {
       this.modify_form.get('Select_Charge_Code_or_Work_Order')?.setValue('workOrder')
       this.workOrderList = this.task_data?.work_Orders != '' ? this.task_data?.work_Orders?.split(',') : []
-  }
+    }
     this.get_data_create_request();
   }
 
@@ -663,7 +683,7 @@ export class modify_details {
       chargeCode: 'charge_Code'
     };
 
-    const optionKeys = ['location', 'resources','chargeCode'];
+    const optionKeys = ['location', 'resources', 'chargeCode'];
 
     optionKeys.forEach((key: any) => {
       const field = `${key}Options` as keyof this
@@ -1203,7 +1223,7 @@ export class upload_file {
 
   }
 
-  api_res:any
+  api_res: any
   add_file() {
     if (!this.fileBase64) {
       this.common_service.displayWarning('Please select a file.');
@@ -1532,6 +1552,116 @@ export class add_log_entries {
 
   close() {
     this.dialogRef.close()
+  }
+
+}
+
+
+// Delete
+
+@Component({
+  selector: 'delete_request',
+  imports: [CommonModule, FormsModule],
+  template: `
+  <div class="container-fluid delete_modal">
+    <div class="row">
+      <div class="col-12">
+        <h2>Delete Confirmation</h2>
+        <form>
+        <label>Are you sure you want to delete {{delete_type}}: <strong>{{name}}</strong>? <br> This action cannot be undone.</label>
+        <div class="btn_div">
+        <button class="yesbtn" (click)="delete_Request()" *ngIf="!Is_spinner">Yes, Delete</button>
+        <button class="yesbtn" *ngIf="Is_spinner">
+          <div class="spinner"></div>
+        </button>
+        <button (click)="close()">Cancel</button>
+        </div>
+        </form>
+      </div>
+    </div>
+  </div>
+  `,
+  styleUrl: './task-request-detail.component.scss',
+})
+
+export class delete_request {
+  delete_type: any
+  name: any
+  taskId: any
+  constructor(public dialogRef: MatDialogRef<delete_request>,
+    private apiservice: AllApiServiceService,
+    private common_service: CommonServiceService,
+    @Inject(MAT_DIALOG_DATA) public data: any) {
+    this.delete_type = data.delete_type
+    this.name = data.name
+    this.taskId = data.taskId
+  }
+
+  close() {
+    this.dialogRef.close()
+    this.name = ''
+    this.delete_type = ''
+  }
+
+  Is_spinner: boolean = false;
+  delete_Request() {
+      this.delete_type === 'Contact' ? this.delete_contact() : 
+      this.delete_type === 'File' ? this.delete_file() : 
+      this.delete_type === 'Link' ? this.delete_link() : '';
+  }
+
+  delete_contact() {
+    this.Is_spinner = true;
+    const body = {
+      "taskID": this.taskId,
+      "userID": this.name
+    }
+    this.apiservice.delete_contact_task(body).subscribe({
+      next: (res) => {
+        this.Is_spinner = false;
+        this.common_service.displaySuccess('Contact deleted successfully.');
+        this.dialogRef.close();
+      }, error: (err) => {
+        this.Is_spinner = false;
+        this.common_service.displayWarning('Failed to delete contact. Please try again.');
+      }
+    })
+  }
+
+  delete_file() {
+    this.Is_spinner = true;
+    const body = {
+      "taskID": this.taskId,
+      "fileName": this.name
+    }
+    this.apiservice.delete_file_task(body).subscribe({
+      next: (res) => {
+        this.Is_spinner = false;
+        this.common_service.displaySuccess('File deleted successfully.');
+        this.dialogRef.close();
+      }, error: (err) => {
+        this.Is_spinner = false;
+        this.common_service.displayWarning('Failed to delete file. Please try again.');
+      }
+    })
+  }
+
+  delete_link() {
+    this.Is_spinner = true;
+    const body = {
+      "taskID": this.taskId,
+      "link": this.name
+    }
+    this.apiservice.delete_link_task(body).subscribe({
+      next: (res) => {
+        this.Is_spinner = false;
+        this.common_service.displaySuccess('Link deleted successfully.');
+        this.dialogRef.close();
+      }, error: (err) => {
+        this.Is_spinner = false;
+        this.common_service.displayWarning('Failed to delete link. Please try again.');
+      }
+    })
   }
 
 }

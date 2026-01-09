@@ -121,14 +121,18 @@
 
             <tr *ngIf="task_details?.startDate != null">
               <th>Start Date:</th>
-              <td>{{task_details?.startDate}}</td>
+              <td>{{task_details?.startDate.split("T")[0] }} {{task_details?.startDate.split("T")[1] }}</td>
             </tr>
 
             <tr *ngIf="task_details?.endDate != null">
               <th>End Date:</th>
-              <td>{{task_details?.endDate}}</td>
+              <td>{{task_details?.endDate.split("T")[0]}} {{task_details?.endDate.split("T")[1] }}</td>
             </tr>
 
+            <tr>
+              <th>Total Test Hours:</th>
+              <td>{{task_details?.daysRequested}}</td>
+            </tr>
 
             <tr>
               <th class="selected_th">Test Status:</th>
@@ -163,27 +167,6 @@
         <div *ngIf="task_details?.test_Status != 'Cancelled'">
 
           <hr class="mt-2">
-          <h4>Contacts | <button class="bttn_add" (click)="add_contact()">[Click here to Add Contact]</button></h4>
-          <table class="table table-bordered">
-            <thead>
-              <tr>
-                <th>Hall ID</th>
-                <th>User Name</th>
-                <th>Email</th>
-              </tr>
-            </thead>
-            <thead>
-
-              <tr *ngFor="let contact of contacts">
-                <td>{{contact.userId}}</td>
-                <td>{{contact.userName}}</td>
-                <td> <a href="mailto:{{contact.email}}">{{contact.email}}</a></td>
-              </tr>
-            </thead>
-
-          </table>
-
-          <hr class="mt-2">
           <h4>Log Entries | <button class="bttn_add" (click)="add_log_entries()">[Click here to Add Log
               Entries]</button></h4>
           <table class="table table_log table-bordered">
@@ -215,6 +198,33 @@
           </table>
 
           <hr class="mt-2">
+          <h4>Contacts | <button class="bttn_add" (click)="add_contact()">[Click here to Add Contact]</button></h4>
+          <h3 *ngIf="contacts?.length === 0" style=" padding: 5px; text-align: center; background-color: white; color: rgb(156, 1, 1); font-size: 1.3em;">No contacts are attached to this task.</h3>
+
+          <ng-container *ngIf="contacts?.length !== 0">
+          <table class="table table-bordered">
+            <thead class="theadbottom">
+              <tr>
+                <th>Hall ID</th>
+                <th>User Name</th>
+                <th>Email</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+
+              <tr *ngFor="let contact of contacts">
+                <td>{{contact.userId}}</td>
+                <td>{{contact.userName}}</td>
+                <td> <a href="mailto:{{contact.email}}">{{contact.email}}</a></td>
+                <td align="center"> <i class="bi bi-trash3-fill" (click)="delete_Request('Contact', contact.userId)"></i> </td>
+              </tr>
+            </tbody>
+
+          </table>
+          </ng-container>
+
+          <hr class="mt-2">
           <h4>Data</h4>
           <table class="table table-bordered">
             <thead>
@@ -228,54 +238,55 @@
 
           <hr class="mt-2">
           <h4>Files | <button class="bttn_add" (click)="upload_file()">[Click here to Upload File]</button></h4>
+          <h3 *ngIf="upload_file_details?.length === 0" style=" padding: 5px; text-align: center; background-color: white; color: rgb(156, 1, 1); font-size: 1.3em;">No files are attached to this task.</h3>
 
+          <ng-container *ngIf="upload_file_details?.length !== 0">
            <table class="table table-bordered">
-            <thead>
+            <thead class="theadbottom">
               <tr>
                 <th>File Name</th>
                 <th>Description</th>
-                <th>Download</th>
+                <th>Action</th>
               </tr>
             </thead>
 
             <tbody>
-              <tr *ngIf="this.upload_file_details?.length === 0">
-                <td> &nbsp; </td>
-                <td> </td>
-              </tr>
              <tr *ngFor="let data of upload_file_details">
                 <td>{{data.fileName}}</td>
                 <td>{{data.description}}</td>
-                <td class="download_td" (click)="download_file(data.fileName)"><i class="bi bi-download"></i></td>
+                <td  align="center"><i (click)="download_file(data.fileName)" class="bi bi-cloud-download-fill"></i> &nbsp; | &nbsp; <i class="bi bi-trash3-fill" (click)="delete_Request('File', data.fileName)"></i> </td>
               </tr>
-
             </tbody>
-
           </table>
+          </ng-container>
 
           <hr class="mt-2">
           <h4>Links | <button class="bttn_add" (click)="add_link()">[Click here to Add Link]</button></h4>
+          <h3 *ngIf="upload_link?.length === 0" style=" padding: 5px; text-align: center; background-color: white; color: rgb(156, 1, 1); font-size: 1.3em;">No links are attached to this task.</h3>
+
+          <ng-container *ngIf="upload_link?.length !== 0">
            <table class="table table-bordered">
-            <thead>
+            <thead class="theadbottom">
               <tr>
                 <th>Link</th>
                 <th>Description</th>
+                <th style="width: 40px !important;">Action</th>
               </tr>
             </thead>
 
             <tbody>
-              <tr *ngIf="this.upload_link?.length === 0">
-                <td> &nbsp; </td>
-                <td> </td>
-              </tr>
-              <tr *ngFor="let link of upload_link">
+                <tr *ngFor="let link of upload_link">
                 <td><a [href]="link.link.startsWith('http') ? link.link : 'https://' + link.link" target="_blank">
                     {{ link.link }}
-                  </a></td>
+                  </a>
+                </td>
                 <td>{{link.description}}</td>
+                <td style="width: 40px !important;" align="center"> <i class="bi bi-trash3-fill" (click)="delete_Request('Link', link.link)"></i> </td>
               </tr>
+              
             </tbody>
           </table>
+        </ng-container>
 
         </div>
       </div>

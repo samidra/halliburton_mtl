@@ -221,6 +221,10 @@ export class AllApiServiceService {
     return this.https.get(`${this.url}/TechInterface/GET/GetTestData`, { withCredentials: true })
   }
 
+  get_task_list_byTaskNumber(taskID: any) {
+    return this.https.get(`${this.url}/TechInterface/GET/GetTestDataByTaskID?TaskID=${taskID}`, { withCredentials: true })
+  }
+
   tech_interface_startTest(body: any) {
     let httpOptions = {
       headers: new HttpHeaders({ 'Content-Type': 'application/json' }),
@@ -243,6 +247,30 @@ export class AllApiServiceService {
       withCredentials: true
     };
     return this.https.post(`${this.url}/TechInterface/POST/EditTest`, body, httpOptions)
+  }
+
+  delete_contact_task(body: any) {
+    let httpOptions = {
+      headers: new HttpHeaders({ 'Content-Type': 'application/json' }),
+      withCredentials: true
+    };
+    return this.https.post(`${this.url}/workRequest/POST/DeleteTaskContact`, body, httpOptions)
+  }
+
+  delete_file_task(body: any) {
+    let httpOptions = {
+      headers: new HttpHeaders({ 'Content-Type': 'application/json' }),
+      withCredentials: true
+    };
+    return this.https.post(`${this.url}/workRequest/POST/DeleteTaskFile`, body, httpOptions)
+  }
+
+  delete_link_task(body: any) {
+    let httpOptions = {
+      headers: new HttpHeaders({ 'Content-Type': 'application/json' }),
+      withCredentials: true
+    };
+    return this.https.post(`${this.url}/workRequest/POST/DeleteTaskLinks`, body, httpOptions)
   }
 
   // Report 

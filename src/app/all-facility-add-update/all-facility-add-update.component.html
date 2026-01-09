@@ -5,7 +5,8 @@
             <div class="d-flex" style="display: flex; align-items: flex-end;">
                 <div style="width: 70%;">
                     <label for="search">Search Facility:</label>
-                    <input type="text" id="search" [(ngModel)]="searchText" placeholder="Search by Facility, or Any Relevant Information">
+                    <input type="text" id="search" [(ngModel)]="searchText"
+                        placeholder="Search by Facility, or Any Relevant Information">
                 </div>
                 <div style="width: 30%" class="bttn_div">
                     <button class="start_btn" (click)="add_update('Add Facility', '')">Add Facility</button>
@@ -39,12 +40,23 @@
                         <td align="center">{{ request?.agreementRequired === true ? 'Yes' : 'No' }}</td>
                         <!-- <td>{{ request?.fileAccess }}</td> -->
                         <td align="center">
-                            <a [href]="request?.facilityPolicyLink.startsWith('http') ? request?.facilityPolicyLink : 'https://' + request?.facilityPolicyLink"
-                                target="_blank">
+                            <a *ngIf="request?.facilityPolicyLink?.startsWith('http')"
+                                [href]="request?.facilityPolicyLink" target="_blank">
                                 Visit Attachment
                             </a>
+                            <span *ngIf="!request?.facilityPolicyLink?.startsWith('http')">
+                                <a *ngIf="request?.facilityPolicyLink != ''"
+                                [href]="'/assets/files/' + request?.facilityPolicyLink"
+                                    [download]="request?.facilityPolicyLink"
+                                    (click)="downloadFile(request?.facilityPolicyLink)">
+                                    Download file
+                                </a>
+                                <p *ngIf="request?.facilityPolicyLink === ''">No file available for download.</p>
+                            </span>
+
                         </td>
-                        <td align="center"><a (click)="viewCalibrationsettings(request?.facilityID)">View Settings</a></td>
+                        <td align="center"><a (click)="viewCalibrationsettings(request?.facilityID)">View Settings</a>
+                        </td>
                         <td align="center">
                             <a (click)="add_update('Update Facility', request?.facilityID)"> <i
                                     class="bi bi-pencil-square"></i> Udpate</a> |
@@ -67,7 +79,7 @@
     </div>
 </div>
 
- 
+
 <div class="loader" *ngIf="isLoading">
     <div class="spinner"></div>
 </div>

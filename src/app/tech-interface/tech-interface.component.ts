@@ -57,7 +57,7 @@ export class TechInterfaceComponent implements OnInit, OnDestroy {
   }
 
   get_all_task_request() {
-    this.isLoading = true;
+
     this.api_service.get_all_task_request().subscribe({
       next: (res: any) => {
         this.all_task = res;
@@ -87,71 +87,6 @@ export class TechInterfaceComponent implements OnInit, OnDestroy {
     );
   }
 
-  test_execution(execution_type: any) {
-
-    if (this.filteredItems.length === 0) {
-      this.commonService.displayWarning('No data available with this Task ID')
-      return
-    }
-
-    if (execution_type === 'start') {
-      const task_details = this.all_task.find((task: any) => task.taskID === this.selectedRequests[0]?.taskID)
-      if (task_details.status === 'In Progress') {
-        this.commonService.displayWarning('Cannot proceed — test already started for this task ID.')
-        this.searchText = ''
-        return
-      }
-      const dialogRef = this.dialog.open(start_test, {
-        data: { task_number: this.selectedRequests[0]?.taskID, all_task: this.all_task },
-        width: '500px',
-        panelClass: 'custom-dialog-container'
-      })
-
-      dialogRef.afterClosed().subscribe(detailResult => {
-        this.searchText = ''
-        this.selectedRequests = []
-        if (detailResult !== 'submitted') return;
-        this.get_all_task_request()
-      });
-
-    } else if (execution_type === 'end') {
-      const task_details = this.all_task.find((task: any) => task.taskID === this.selectedRequests[0]?.taskID)
-      if (task_details.status === 'Approved' || task_details.status === 'Completed') {
-        this.commonService.displayWarning('Test not started yet — cannot cancel.')
-        this.searchText = ''
-        return
-      }
-
-      const dialogRef = this.dialog.open(end_test, {
-        data: { task_number: this.selectedRequests[0]?.taskID, all_task: this.all_task },
-        width: '500px',
-        panelClass: 'custom-dialog-container'
-      })
-
-      dialogRef.afterClosed().subscribe(detailResult => {
-        this.searchText = ''
-        this.selectedRequests = []
-        if (detailResult !== 'submitted') return;
-        this.get_all_task_request()
-      });
-    } else {
-      const task_details = this.all_task.find((task: any) => task.taskID === this.selectedRequests[0]?.taskID)
-
-      const dialogRef = this.dialog.open(edit_test, {
-        data: { task_number: this.selectedRequests[0]?.taskID, all_task: this.all_task },
-        width: '500px',
-        panelClass: 'custom-dialog-container'
-      })
-
-      dialogRef.afterClosed().subscribe(detailResult => {
-        this.searchText = ''
-        this.selectedRequests = []
-        if (detailResult !== 'submitted') return;
-        this.get_all_task_request()
-      });
-    }
-  }
-
   view_all_detail(test_id: any) {
     window.open(`tech-interface/test-detail/${test_id}`, '_blank')
   }
@@ -159,11 +94,15 @@ export class TechInterfaceComponent implements OnInit, OnDestroy {
   select_task(request: any) {
     if (this.selectedRequests.length && this.selectedRequests[0].id === request.id) {
       this.selectedRequests = [];
+      this.searchText = '';
+      this.tasklist_byTaskID = []
+      this.selectedRequestsActivity = []
     } else {
       this.selectedRequests = [request];
+      this.searchText = request.taskID;
+      this.get_task_list_byTaskNumber(request.taskID);
     }
   }
-
 
   selectedRequests: any[] = [];
   toggleSelection(request: any, event: Event): void {
@@ -179,151 +118,113 @@ export class TechInterfaceComponent implements OnInit, OnDestroy {
     return this.selectedRequests.some(r => r.taskID === request.taskID);
   }
 
-}
-
-
-// End Test
-
-@Component({
-  selector: 'end_test',
-  imports: [FormsModule, ReactiveFormsModule, CommonModule],
-  template: `
-  <div class="container-fluid common_dialog">
-    <div class="row">
-      <div class="col-12">
-        <h2>End Test</h2>
-
-    <form [formGroup]="start_test_form" (ngSubmit)="onSubmit()">
-       <div class="form-group border p-1 pt-0">
-           <div class="form_field">
-               <label>Task number:</label>
-               <input type="text" class="form-control" formControlName="task_number" [readOnly]="true">
-
-               <label class="mt-1">Test Started On:</label>
-               <input type="datetime-local" class="form-control" formControlName="start_date" [readOnly]="true">
-
-               <label class="mt-1">Select Date to End the Test:</label>
-               <input type="datetime-local" class="form-control" formControlName="end_date" >
-               <div *ngIf="start_test_form.get('end_date')?.invalid && start_test_form.get('end_date')?.touched"
-               class="text-danger error">
-                  End Date is required.
-               </div>
-
-                <label class="mt-1">Total Test Duration In Hours:</label>
-                <input type="number" class="form-control" formControlName="duration" 
-                step="0.01" min="0.01" placeholder="Enter Total Test Duration In Hours"/>
-
-                <div *ngIf="start_test_form.get('duration')?.touched">
-                  <div *ngIf="start_test_form.get('duration')?.errors?.['required']" class="text-danger error">
-                    Test Duration is required.
-                  </div>
-                  <div *ngIf="start_test_form.get('duration')?.errors?.['min']" class="text-danger error">
-                    Duration must be greater than 0.
-                  </div>
-                </div>
-
-           </div>
-       </div>
-
-       <div class="btn_div">
-           <button type="submit" class="yesbtn" *ngIf="!Is_spinner">Submit</button>
-           <button class="yesbtn" *ngIf="Is_spinner">
-            <div class="spinner"></div>
-          </button>
-           <button type="reset" (click)="close()">Close</button>
-       </div>
-    </form>
- 
-      </div>
-    </div>
-  </div>
-  `,
-  styleUrl: './tech-interface.component.scss'
-})
-
-export class end_test {
-
-  user_type = ['User', 'Lead', 'Tech', 'Admin', 'Inventory', 'Unknown'];
-  start_test_form !: FormGroup;
-  task_number: any
-  task_details: any;
-  currentDate: any;
-  constructor(private fb: FormBuilder,
-    private common_service: CommonServiceService,
-    private api_service: AllApiServiceService,
-    public dialogRef: MatDialogRef<end_test>,
-    @Inject(MAT_DIALOG_DATA) public data: any,
-  ) {
-    this.task_number = data.task_number
-    this.task_details = data.all_task.find((task: any) => task.taskID === this.task_number)
-  }
-
-  ngOnInit(): void {
-    const now = new Date();
-    this.currentDate = now.toISOString().slice(0, 16);
-    this.start_test_form = this.fb.group({
-      task_number: ['vfxsdfsdf', Validators.required],
-      start_date: ['', Validators.required],
-      end_date: [this.formatDateForInput(new Date()), Validators.required],
-      duration: [null, [Validators.required, Validators.min(0.01)]]
-    });
-
-    if (this.task_details) {
-      this.start_test_form.get('task_number')?.setValue(this.task_number)
-      this.start_test_form.get('start_date')?.setValue(this.task_details.requested_StartDate)
-      // this.start_test_form.get('end_date')?.setValue(this.task_details.requested_EndDate)
-    }
-
-    // this.get_form_value()
-  }
-
-  formatDateForInput(date: Date): string {
-    const isoString = date.toISOString();
-    return isoString.slice(0, 16); // Removes seconds and milliseconds
-  }
-
-  submit_response: any
-  Is_spinner: boolean = false
-  onSubmit() {
-    if (this.start_test_form.valid) {
-      this.Is_spinner = true
-      const body = {
-        UserID: 'H317697',
-        taskID: this.start_test_form.get('task_number')?.value,
-        endDate: this.start_test_form.get('end_date')?.value,
-        duration: this.start_test_form.get('duration')?.value,
+  tasklist_byTaskID: any = []
+  get_task_list_byTaskNumber(taskID: any) {
+    this.isLoading = true;
+    this.api_service.get_task_list_byTaskNumber(taskID).subscribe({
+      next: (res: any) => {
+        this.tasklist_byTaskID = res;
+        this.isLoading = false;
+      },
+      error: (err) => {
+        console.error('Error fetching tasks:', err.message);
+        this.isLoading = false;
       }
-      console.log(body)
+    });
+  }
 
-      this.api_service.tech_interface_endTest(body).subscribe({
-
-        next: (res) => {
-          console.log(res)
-          this.submit_response = res
-          if (this.submit_response.status) {
-            this.Is_spinner = false
-            this.common_service.displaySuccess('Test ended succesfully')
-            this.dialogRef.close('submitted')
-          } else {
-            this.Is_spinner = false
-            this.common_service.displayWarning('Request failed. Please try again later')
-          }
-        },
-        error: (err) => {
-          this.Is_spinner = false;
-          console.error('API error:', err);
-          this.common_service.displayWarning('Request failed. Please try again later');
-        },
-      })
+  select_taskfor_activity(request: any) {
+    if (this.selectedRequestsActivity.length && this.selectedRequestsActivity[0].activityID === request.activityID) {
+      this.selectedRequestsActivity = [];
     } else {
-      this.start_test_form.markAllAsTouched();
-      console.log('Form is not valid');
+      this.selectedRequestsActivity = [request];
     }
   }
 
-  close() {
-    this.dialogRef.close()
+  selectedRequestsActivity: any[] = [];
+  toggleSelectionforActivity(request: any, event: Event): void {
+    const checked = (event.target as HTMLInputElement).checked;
+    if (checked) {
+      this.selectedRequestsActivity = [request];
+    } else {
+      this.selectedRequestsActivity = this.selectedRequestsActivity.filter(r => r.activityID !== request.activityID);
+    }
   }
+
+  isSelectedtaskforactivity(request: any): boolean {
+    return this.selectedRequestsActivity.some(r => r.activityID === request.activityID);
+  }
+
+    test_execution(execution_type: any) {
+
+    if (this.filteredItems.length === 0) {
+      this.commonService.displayWarning('No data available with this Task ID')
+      return
+    }
+
+    if (execution_type === 'start') {
+      const task_details = this.all_task.find((task: any) => task.taskID === this.selectedRequests[0]?.taskID)
+      if (task_details.status === 'In Progress') {
+        this.commonService.displayWarning('Cannot proceed — test already started for this task ID.')
+        // this.searchText = ''
+        return
+      }
+      const dialogRef = this.dialog.open(start_test, {
+        data: { task_number: this.selectedRequests[0]?.taskID, all_task: this.all_task },
+        width: '500px',
+        panelClass: 'custom-dialog-container'
+      })
+
+      dialogRef.afterClosed().subscribe(detailResult => {
+        this.searchText = ''
+        this.selectedRequests = []
+        this.tasklist_byTaskID = []
+        this.selectedRequestsActivity = []
+        if (detailResult !== 'submitted') return;
+        this.get_all_task_request()
+      });
+
+    } else if (execution_type === 'end') {
+      const task_details = this.tasklist_byTaskID.find((task: any) => task.activityID === this.selectedRequestsActivity[0]?.activityID)
+      // if (task_details.status === 'Approved' || task_details.status === 'Completed') {
+      //   this.commonService.displayWarning('Test not started yet — cannot cancel.')
+      //   // this.searchText = ''
+      //   return
+      // }
+
+      const dialogRef = this.dialog.open(end_test, {
+        data: { all_task: task_details },
+        width: '500px',
+        panelClass: 'custom-dialog-container'
+      })
+
+      dialogRef.afterClosed().subscribe(detailResult => {
+        this.searchText = ''
+        this.selectedRequests = []
+        this.tasklist_byTaskID = []
+        this.selectedRequestsActivity = []
+        if (detailResult !== 'submitted') return;
+        this.get_all_task_request()
+      });
+    } else {
+      const task_details = this.tasklist_byTaskID.find((task: any) => task.activityID === this.selectedRequestsActivity[0]?.activityID)
+      const dialogRef = this.dialog.open(edit_test, {
+        data: { all_task: task_details },
+        width: '500px',
+        panelClass: 'custom-dialog-container'
+      })
+
+      dialogRef.afterClosed().subscribe(detailResult => {
+        this.searchText = ''
+        this.selectedRequests = []
+        this.tasklist_byTaskID = []
+        this.selectedRequestsActivity = []
+        if (detailResult !== 'submitted') return;
+        this.get_all_task_request()
+      });
+    }
+  }
+
 }
 
 // Start Test
@@ -389,7 +290,6 @@ export class start_test {
   ) {
     this.task_number = data.task_number
     this.task_details = data.all_task.find((task: any) => task.taskID === this.task_number)
-    console.log(this.task_details)
   }
 
   ngOnInit(): void {
@@ -419,15 +319,14 @@ export class start_test {
       this.Is_spinner = true
       const body = {
         UserID: 'H317697',
+        activityID: this.task_details.activityID,
         taskID: this.start_test_form.get('task_number')?.value,
         startDate: this.start_test_form.get('start_date')?.value,
       }
-      console.log(body)
 
       this.api_service.tech_interface_startTest(body).subscribe({
 
         next: (res) => {
-          console.log(res)
           this.submit_response = res
           if (this.submit_response.status) {
             this.Is_spinner = false
@@ -523,9 +422,8 @@ export class edit_test {
     public dialogRef: MatDialogRef<edit_test>,
     @Inject(MAT_DIALOG_DATA) public data: any,
   ) {
-    this.task_number = data.task_number
-    this.task_details = data.all_task.find((task: any) => task.taskID === this.task_number)
-    console.log(this.task_details)
+    this.task_number = data.all_task.taskID
+    this.task_details = data.all_task
   }
 
   ngOnInit(): void {
@@ -552,6 +450,7 @@ export class edit_test {
       this.Is_spinner = true
       const body = {
         UserID: 'H317697',
+        activityID: this.task_details.activityID,
         taskID: this.start_test_form.get('task_number')?.value,
         duration: this.start_test_form.get('duration')?.value,
         resource: this.task_details.resource,
@@ -568,6 +467,149 @@ export class edit_test {
           if (this.submit_response.status) {
             this.Is_spinner = false
             this.common_service.displaySuccess('Test deails updated succesfully')
+            this.dialogRef.close('submitted')
+          } else {
+            this.Is_spinner = false
+            this.common_service.displayWarning('Request failed. Please try again later')
+          }
+        },
+        error: (err) => {
+          this.Is_spinner = false;
+          console.error('API error:', err);
+          this.common_service.displayWarning('Request failed. Please try again later');
+        },
+      })
+    } else {
+      this.start_test_form.markAllAsTouched();
+      console.log('Form is not valid');
+    }
+  }
+
+  close() {
+    this.dialogRef.close()
+  }
+}
+
+// End Test
+
+@Component({
+  selector: 'end_test',
+  imports: [FormsModule, ReactiveFormsModule, CommonModule],
+  template: `
+  <div class="container-fluid common_dialog">
+    <div class="row">
+      <div class="col-12">
+        <h2>End Test</h2>
+
+    <form [formGroup]="start_test_form" (ngSubmit)="onSubmit()">
+       <div class="form-group border p-1 pt-0">
+           <div class="form_field">
+               <label>Task number:</label>
+               <input type="text" class="form-control" formControlName="task_number" [readOnly]="true">
+
+               <label class="mt-1">Test Started On:</label>
+               <input type="datetime-local" class="form-control" formControlName="start_date" [readOnly]="true">
+
+               <label class="mt-1">Select Date to End the Test:</label>
+               <input type="datetime-local" class="form-control" formControlName="end_date" >
+               <div *ngIf="start_test_form.get('end_date')?.invalid && start_test_form.get('end_date')?.touched"
+               class="text-danger error">
+                  End Date is required.
+               </div>
+
+                <label class="mt-1">Total Test Duration In Hours:</label>
+                <input type="number" class="form-control" formControlName="duration" 
+                step="0.01" min="0.01" placeholder="Enter Total Test Duration In Hours"/>
+
+                <div *ngIf="start_test_form.get('duration')?.touched">
+                  <div *ngIf="start_test_form.get('duration')?.errors?.['required']" class="text-danger error">
+                    Test Duration is required.
+                  </div>
+                  <div *ngIf="start_test_form.get('duration')?.errors?.['min']" class="text-danger error">
+                    Duration must be greater than 0.
+                  </div>
+                </div>
+
+           </div>
+       </div>
+
+       <div class="btn_div">
+           <button type="submit" class="yesbtn" *ngIf="!Is_spinner">Submit</button>
+           <button class="yesbtn" *ngIf="Is_spinner">
+            <div class="spinner"></div>
+          </button>
+           <button type="reset" (click)="close()">Close</button>
+       </div>
+    </form>
+ 
+      </div>
+    </div>
+  </div>
+  `,
+  styleUrl: './tech-interface.component.scss'
+})
+
+export class end_test {
+
+  user_type = ['User', 'Lead', 'Tech', 'Admin', 'Inventory', 'Unknown'];
+  start_test_form !: FormGroup;
+  task_number: any
+  task_details: any;
+  currentDate: any;
+  constructor(private fb: FormBuilder,
+    private common_service: CommonServiceService,
+    private api_service: AllApiServiceService,
+    public dialogRef: MatDialogRef<end_test>,
+    @Inject(MAT_DIALOG_DATA) public data: any,
+  ) {
+    this.task_number = data.all_task.taskID
+    this.task_details = data.all_task
+  }
+
+  ngOnInit(): void {
+    const now = new Date();
+    this.currentDate = now.toISOString().slice(0, 16);
+    this.start_test_form = this.fb.group({
+      task_number: ['vfxsdfsdf', Validators.required],
+      start_date: ['', Validators.required],
+      end_date: [this.formatDateForInput(new Date()), Validators.required],
+      duration: [null, [Validators.required, Validators.min(0.01)]]
+    });
+
+    if (this.task_details) {
+      this.start_test_form.get('task_number')?.setValue(this.task_number)
+      this.start_test_form.get('start_date')?.setValue(this.task_details.requested_StartDate)
+      // this.start_test_form.get('end_date')?.setValue(this.task_details.requested_EndDate)
+    }
+
+    // this.get_form_value()
+  }
+
+  formatDateForInput(date: Date): string {
+    const isoString = date.toISOString();
+    return isoString.slice(0, 16); // Removes seconds and milliseconds
+  }
+
+  submit_response: any
+  Is_spinner: boolean = false
+  onSubmit() {
+    if (this.start_test_form.valid) {
+      this.Is_spinner = true
+      const body = {
+        UserID: 'H317697',
+        activityID: this.task_details.activityID,
+        taskID: this.start_test_form.get('task_number')?.value,
+        endDate: this.start_test_form.get('end_date')?.value,
+        duration: this.start_test_form.get('duration')?.value,
+      }
+
+      this.api_service.tech_interface_endTest(body).subscribe({
+
+        next: (res) => {
+          this.submit_response = res
+          if (this.submit_response.status) {
+            this.Is_spinner = false
+            this.common_service.displaySuccess('Test ended succesfully')
             this.dialogRef.close('submitted')
           } else {
             this.Is_spinner = false
