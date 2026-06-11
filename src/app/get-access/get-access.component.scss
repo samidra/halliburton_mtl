@@ -1,0 +1,67 @@
+* {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+}
+
+.unauthorized-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+}
+
+.card {
+  background: white;
+  border: 1px solid #dee2e6;
+  padding: 20px 10px;
+  text-align: center;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  max-width: 600px;
+}
+
+h1 {
+  font-size: 1.5em;
+  color: #dc3545;
+  margin-bottom: 10px;
+}
+
+p {
+  font-size: 0.9em;
+  color: #6c757d;
+  font-weight: 600;
+  margin-bottom: 5px;
+}
+
+span {
+  font-size: 0.9em;
+  color: #6c757d;
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+
+.btn_div {
+  margin: 7px 0;
+  display: flex;
+  justify-content: center;
+
+  button {
+    border: none;
+    box-shadow: 0 3px 1px -2px #0003, 0 2px 2px #00000024, 0 1px 5px #0000001f;
+    font-weight: 500;
+    font-size: 0.95em;
+    height: 40px;
+    width: 170px;
+    border-radius: 2px;
+  }
+
+  .yesbtn {
+    color: white;
+    background-color: rgb(216, 17, 17);
+    margin-right: 9px;
+
+    &:hover {
+      background-color: rgb(139, 11, 11);
+    }
+  }
+}

@@ -20,7 +20,8 @@ interface WorkRequest {
   selector: 'app-work-request-form',
   imports: [CommonModule, FormsModule, ReactiveFormsModule, NgxPaginationModule,],
   templateUrl: './work-request-form.component.html',
-  styleUrl: './work-request-form.component.scss'
+  styleUrl: './work-request-form.component.scss',
+  standalone: true,
 })
 
 
@@ -79,7 +80,7 @@ export class WorkRequestFormComponent {
   }
 
   ngOnInit(): void {
-    this.titleService.setTitle('All Work Request | MTL HALLIBURTON');
+    this.titleService.setTitle('All Work Request | TestTrack HALLIBURTON');
     this.startPolling();
   }
 
@@ -87,7 +88,6 @@ export class WorkRequestFormComponent {
     if (this.pollingInterval) {
       clearInterval(this.pollingInterval);
       this.pollingInterval = null;
-      console.log('Component destroyed. Polling stopped.');
     }
   }
 
@@ -107,8 +107,7 @@ export class WorkRequestFormComponent {
               this.get_all_work_request_list();
             } else {
               clearInterval(this.pollingInterval!);
-              this.pollingInterval = null; // Stop polling
-              console.log('Polling stopped as filters are active.');
+              this.pollingInterval = null; 
             }
           });
         }, 5000);
@@ -122,12 +121,7 @@ export class WorkRequestFormComponent {
     this.api_service.get_all_workrequest().subscribe((res) => {
       this.isLoading = false;
       this.allDataRes = res;
-      console.log(res)
-      this.allDataRes = this.allDataRes.sort((a: { request_Number: string; }, b: { request_Number: string; }) => {
-        const numA = parseInt(a.request_Number.replace(/\D/g, ''), 10);
-        const numB = parseInt(b.request_Number.replace(/\D/g, ''), 10);
-        return numA - numB;
-      });
+     
       this.filtered_all_requestor = [...new Set(this.allDataRes.map((item: { requester: any; }) => item.requester))];
       this.filtered_request_no = [...new Set(this.allDataRes.map((item: { request_Number: any; }) => item.request_Number))];
       this.filtered_task_Number = [...new Set(this.allDataRes.map((item: { task_Number: any; }) => item.task_Number))];
@@ -168,12 +162,11 @@ export class WorkRequestFormComponent {
     });
 
     if (this.shouldPollData()) {
-      this.startPolling();  // Restart polling if filters are cleared
+      this.startPolling();
     } else {
       if (this.pollingInterval) {
-        clearInterval(this.pollingInterval!);  // Stop polling when any filter has a value
+        clearInterval(this.pollingInterval!);
         this.pollingInterval = null;
-        console.log('Polling stopped due to active filters.');
       }
     }
   }
@@ -218,11 +211,9 @@ export class WorkRequestFormComponent {
       if (this.pollingInterval) {
         clearInterval(this.pollingInterval!);
         this.pollingInterval = null;
-        console.log('Polling stopped due to active filters.');
       }
     }
   }
-
 
   remove_filter() {
     this.filteredData = [...this.allDataRes];

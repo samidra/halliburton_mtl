@@ -75,14 +75,13 @@ form {
 .form_field_add {
   margin-top: 10px;
   display: flex;
+  align-items: center;
 
-  .form-group{
+  .form-group {
     margin-top: 0;
   }
+
   .add_new_button {
-    // position: absolute;
-    // right: -125px;
-    // top: 15px;
     margin-left: 10px;
     border: none;
     height: 28px;
@@ -100,19 +99,19 @@ form {
 }
 
 .button {
-    border: none;
-    height: 27px;
-    background-color: rgb(216, 17, 17);
-    color: white;
-    font-size: 0.75em;
-    font-weight: 500;
-    padding: 0 8px;
-    border-radius: 1px;
+  border: none;
+  height: 27px;
+  background-color: rgb(216, 17, 17);
+  color: white;
+  font-size: 0.75em;
+  font-weight: 500;
+  padding: 0 8px;
+  border-radius: 1px;
 
-    &:hover {
-      box-shadow: 1px 1px 5px 1px rgb(32 34 35);
-    }
+  &:hover {
+    box-shadow: 1px 1px 5px 1px rgb(32 34 35);
   }
+}
 
 .form-group {
 
@@ -187,7 +186,7 @@ form {
   justify-content: flex-end;
   margin: 10px 0;
 
-  button{
+  button {
     box-shadow: 0 3px 1px -2px #0003, 0 2px 2px #00000024, 0 1px 5px #0000001f;
     font-weight: 600 !important;
     font-size: 0.85em;
@@ -200,6 +199,7 @@ form {
     padding: 0 7px;
     height: 30px;
   }
+
   .draft_button {
     border: 1px solid rgb(235, 122, 122);
 
@@ -216,7 +216,7 @@ form {
     background-color: rgb(216, 17, 17);
     color: white;
     text-shadow: none;
-    
+
 
     &:hover {
       background-color: rgb(148, 12, 12);
@@ -297,3 +297,67 @@ form {
 
 }
 
+.selected-item {
+  display: flex;
+  align-items: flex-start;
+
+  input[type="checkbox"] {
+    margin-right: 5px;
+    margin-top: 2px;
+  }
+}
+
+.user_detail {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  width: 86.5%;
+  padding-top: 7px;
+
+  .detail_box {
+    position: relative;
+    transition: max-height 0.6s ease-in;
+    transition: width 0.6s ease-out;
+    background-color: rgb(255, 255, 255);
+    color: rgb(29, 28, 28);
+    border: 1px solid rgb(143, 143, 143);
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+
+    h5 {
+      font-size: 0.75em;
+      font-weight: 500;
+      color: rgb(190, 4, 4);
+      margin: 0;
+      padding: 3px;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .name {
+      display: none;
+    }
+
+    &:hover {
+  
+      .name {
+        border: 1px solid rgb(100, 3, 3);
+        background-color: white;
+        width: 330px;
+        height: max-content;
+        max-height: 200px;
+        overflow: scroll;
+        overflow-x: hidden;
+        position: absolute;
+        top: 20px;
+        z-index: 1;
+        display: flex;
+        flex-direction: column;
+        padding: 5px
+      }
+    }
+  }
+}

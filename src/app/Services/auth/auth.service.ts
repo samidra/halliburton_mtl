@@ -16,7 +16,10 @@ export interface User {
 export class AuthService {
   private currentUserSubject = new BehaviorSubject<User | null | undefined>(undefined);
   currentUser$ = this.currentUserSubject.asObservable();
-  readonly url: any = 'http://azscusinve001:5092/api/v1';
+  // Production URL
+  readonly url: any = 'http://azscusmtlt001:5092/api/v1';
+  // Development URL
+  // readonly url: any = 'http://azscusinve001:5092/api/v1';
 
   constructor(private http: HttpClient) {}
 
@@ -24,19 +27,20 @@ export class AuthService {
     return new Promise((resolve) => {
       this.fetchCurrentUser().subscribe({
         next: (user) => {
+          console.log('Fetched user:', user);
           if (user?.message === 'User not found in database') {
             console.warn('User not found in database:', user.message);
-            this.currentUserSubject.next(user); // 👈 unauthorized
+            this.currentUserSubject.next(user);
               console.log(user)
           } else {
-            console.log(user)
-            this.currentUserSubject.next(user); // 👈 logged in
+            // console.log(user)
+            this.currentUserSubject.next(user);
           }
           resolve();
         },
         error: (err) => {
           console.error('Failed to fetch current user:', err);
-          this.currentUserSubject.next(null); // 👈 unauthorized
+          this.currentUserSubject.next(null); 
           resolve();
         }
       });

@@ -3,9 +3,10 @@
         <div class="col-12 heading_form">
             <h3> Create New Work Request</h3>
         </div>
+
         <div class="col-12 form" style="display: flex; justify-content: center;">
 
-            <form [formGroup]="new_work_request">
+            <form [formGroup]="new_work_request" autocomplete="off">
 
                 <!-- Location -->
                 <div class="form-group">
@@ -17,7 +18,7 @@
                                 (click)="show('location')" #inputField>
                             <ul *ngIf="locationOptions.length !=0" class="list_drop" #dropdownContainer>
                                 <li *ngFor="let option of locationOptions"
-                                (click)="option !== 'No data with this search' ? selectOption('location',option) : errorMessage('Location','location')">
+                                    (click)="option !== 'No data with this search' ? selectOption('location',option) : errorMessage('Location','location')">
                                     {{option}}</li>
                             </ul>
                         </div>
@@ -46,7 +47,7 @@
                                 (click)="show('resources')" #inputField>
                             <ul *ngIf="resourcesOptions.length !=0" class="list_drop" #dropdownContainer>
                                 <li *ngFor="let option of resourcesOptions" (click)="selectOption('resources',option)"
-                                (click)="option !== 'No data with this search' ? selectOption('resources',option) : errorMessage('Resources','resources')">
+                                    (click)="option !== 'No data with this search' ? selectOption('resources',option) : errorMessage('Resources','resources')">
                                     {{option}}
                                 </li>
                             </ul>
@@ -112,28 +113,93 @@
                 <div class="form_field_add"
                     *ngIf="new_work_request.get('Select_Charge_Code_or_Work_Order')?.value === 'chargeCode'">
                     <div class="form-group">
+
                         <div class="form_field">
+
                             <label for="chargeCode">Charge Code: </label>
+                            <!-- <div style=" display: flex; margin: 2px;">
+                                    <div class="key-descriptions" *ngFor="let item of chargeCodeList" [title]="item">
+                                        <i class="bi bi-x-circle-fill" (click)="removechargeCode(item)"></i>
+                                        {{item.split('-')[0]}}
+                                    </div>
+                                </div> -->
+
                             <div class="form_field_dropdown">
-                                <input id="chargeCode" type="text" class="form-control" placeholder="Search charge code"
-                                    style="margin-right: 10px;" formControlName="chargeCode"
+
+                                <input id="chargeCode" type="text" class="form-control"
+                                    placeholder="Search/Add one or more charge codes" formControlName="chargeCode"
                                     (click)="show('chargeCode')" #inputField>
                                 <ul *ngIf="chargeCodeOptions.length !=0" class="list_drop" #dropdownContainer>
-                                    <li *ngFor="let option of chargeCodeOptions"
-                                        (click)="option !== 'No data with this search' ? selectOption('chargeCode', option) : errorMessage('Charge Code','chargeCode')">{{option}}</li>
+                                    <!-- SELECTED ITEMS (Always on top) -->
+                                    <li *ngFor="let item of chargeCodeList" class="selected-item">
+                                        <input type="checkbox" checked (change)="toggleSelection(item)">
+                                        <span class="label-text" (click)="removechargeCode(item)">{{ item }}</span>
+                                    </li>
+
+                                    <!-- UNSELECTED OPTIONS -->
+                                    <ng-container *ngFor="let option of chargeCodeOptions">
+                                        <li *ngIf="!chargeCodeList.includes(option)" (click)="toggleSelection(option)"
+                                            class="selected-item">
+                                            <input type="checkbox" [checked]="false"
+                                                *ngIf="option !== 'No data with this search'">
+                                            <span class="label-text">{{ option }}</span>
+                                        </li>
+                                    </ng-container>
                                 </ul>
+                                <!-- <ul *ngIf="chargeCodeOptions.length !=0" class="list_drop" #dropdownContainer>
+                                        <li *ngFor="let option of chargeCodeOptions"
+                                            (click)="option !== 'No data with this search' ? selectOption('chargeCode', option) : errorMessage('Charge Code','chargeCode')">
+                                            {{option}}</li>
+                                    </ul> -->
+
                             </div>
+
+
                         </div>
-                        <div class="row">
-                            <div class="key-description col-2" *ngFor="let item of chargeCodeList" [title]="item">
+
+                    </div>
+                    <button type="button" class="add_new_button" (click)="add_chargeCode()">
+                        Request New
+                    </button>
+                </div>
+
+                <div class="user_detail" *ngIf="chargeCodeList.length != 0">
+                    <div class="detail_box">
+                        <h5>
+                            <span style="color: black; font-weight: 600;">View selected Charge
+                                Code
+                            </span>
+                            <i class="bi bi-chevron-double-down mx-2"></i>
+                        </h5>
+                        <div class="name">
+                            <div class="key-descriptions" *ngFor="let item of chargeCodeList" [title]="item">
                                 <i class="bi bi-x-circle-fill" (click)="removechargeCode(item)"></i>
-                                {{item.split('-')[0]}}
+                                <!-- {{item.split('-')[0]}} -->
+                                {{ (item.length > 40) ? (item | slice:0:40) + '...' : item }}
                             </div>
                         </div>
                     </div>
-                    <button type="button" class="add_new_button" style="right: -240px;" (click)="add_chargeCode()">                       
-                        Request New
-                    </button>
+                </div>
+
+                <!-- Activity Code -->
+                <div class="form-group" *ngIf="activityCodeShow">
+                    <div class="form_field">
+                        <label for="activityCode">Activity Code:</label>
+
+                        <input type="text" id="activityCode" class="form-control" formControlName="activityCode"
+                            placeholder="Enter Activity Code" />
+                    </div>
+                    <div *ngIf="new_work_request.get('activityCode')?.invalid &&
+            (new_work_request.get('activityCode')?.touched ||
+             new_work_request.get('activityCode')?.dirty)">
+
+                        <div *ngIf="new_work_request.get('activityCode')?.hasError('required')"
+                            class="text-danger error">
+                            Activity Code is required.
+                        </div>
+
+                    </div>
+
                 </div>
 
                 <!-- Work Order -->
@@ -142,17 +208,36 @@
                     <div class="form_field">
                         <label for="workOrder">Work Order:</label>
 
-                        <input type="text" id="workOrder" class="form-control" style="width: 250px; margin-right: 10px;"
-                            formControlName="workOrder" placeholder="Write your Work Order" />
-                        <button type="button" class="button" (click)="add_workOrder('workOrder')">Add More</button>
-                    </div>
+                        <input type="number" id="workOrder" class="form-control"
+                            style="width: 250px; margin-right: 10px;" formControlName="workOrder" maxlength="9"
+                            placeholder="Add one or more Work Order" />
+                        <button type="button" class="button" (click)="add_workOrder('workOrder')">Add</button>
 
-                    <div class="row">
+                        <div class="user_detail" *ngIf="workOrderList.length != 0"
+                            style="width: fit-content;padding: 0; margin-left: 10px;">
+                            <div class="detail_box">
+                                <h5>
+                                    <span style="color: black; font-weight: 600;">
+                                        View All Work Orders
+                                    </span>
+                                    <i class="bi bi-chevron-double-down mx-2"></i>
+                                </h5>
+                                <div class="name">
+                                    <div class="key-descriptions" *ngFor="let item of workOrderList" [title]="item">
+                                        <i class="bi bi-x-circle-fill" (click)="removeworkOrder(item)"></i>
+                                        <!-- {{item.split('-')[0]}} -->
+                                        {{ (item.length > 40) ? (item | slice:0:40) + '...' : item }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- <div class="row">
                         <div class="key-description col-2" *ngFor="let item of workOrderList">
                             <i class="bi bi-x-circle-fill" (click)="removeworkOrder(item)"></i>
                             {{item}}
                         </div>
-                    </div>
+                    </div> -->
                 </div>
 
                 <!-- Tools -->
@@ -164,8 +249,8 @@
                                 <input id="tools" type="text" class="form-control" placeholder="Search tool"
                                     formControlName="tools" (click)="show('tools')" #inputField>
                                 <ul *ngIf="toolsOptions.length !=0" class="list_drop" #dropdownContainer>
-                                    <li *ngFor="let option of toolsOptions" 
-                                    (click)="option !== 'No data with this search' ? selectOption('tools',option) : errorMessage('Tool','tools')">
+                                    <li *ngFor="let option of toolsOptions"
+                                        (click)="option !== 'No data with this search' ? selectOption('tools',option) : errorMessage('Tool','tools')">
                                         {{option}}
                                     </li>
                                 </ul>
@@ -209,9 +294,9 @@
                                 formControlName="pslCompany" (click)="show('pslCompany')" #inputField>
                             <ul *ngIf="pslCompanyOptions.length !=0" class="list_drop" #dropdownContainer>
                                 <li *ngFor="let option of pslCompanyOptions"
-                                (click)="option !== 'No data with this search' ? selectOption('pslCompany',option) : errorMessage('PSL Company','pslCompany')">
-                                {{option}}
-                            </li>
+                                    (click)="option !== 'No data with this search' ? selectOption('pslCompany',option) : errorMessage('PSL Company','pslCompany')">
+                                    {{option}}
+                                </li>
                             </ul>
                         </div>
                     </div>
@@ -237,7 +322,7 @@
                                 formControlName="group" (click)="show('group')" #inputField>
                             <ul *ngIf="groupOptions.length !=0" class="list_drop" #dropdownContainer>
                                 <li *ngFor="let option of groupOptions"
-                                (click)="option !== 'No data with this search' ? selectOption('group',option) : errorMessage('Group','group')">
+                                    (click)="option !== 'No data with this search' ? selectOption('group',option) : errorMessage('Group','group')">
                                     {{option}}
                                 </li>
                             </ul>
@@ -259,7 +344,7 @@
                 <!-- lithium_batteries -->
                 <div class="form-group">
                     <div class="form_field">
-                        <label for="lithium_battery">Lithium Battery:</label>
+                        <label>Lithium Battery:</label>
                         <div class="d-flex border">
                             <div class="check_div">
                                 <input type="radio" id="yes" formControlName="lithium_batteries" [value]="true" />
@@ -327,6 +412,21 @@
                     </div>
                 </div>
 
+                <!-- Test Procedure -->
+                <div class="form-group">
+                    <div class="form_field">
+                        <label for="fileAttachment">Test Procedure:</label>
+
+                        <input type="file" id="fileAttachment" class="form-control" formControlName="fileAttachment"
+                            placeholder="Test Procedure File" style="height: 21px !important;"
+                            (change)="onFileChange($event)" />
+                    </div>
+                    <div *ngIf="new_work_request.get('fileAttachment')?.invalid && new_work_request.get('fileAttachment')?.touched"
+                        class="text-danger error">
+                        Test Procedure File is required.
+                    </div>
+                </div>
+
                 <div class="button_div">
                     <button type="button" *ngIf="!is_draft_spinner" class="draft_button" (click)="saveAsDraft()">
                         Save as Draft
@@ -336,7 +436,7 @@
                     </button>
                     <button type="button" (click)="onSubmit()" *ngIf="!Is_spinner" class="save_button">
                         Submit
-                        <!-- for Approval -->     
+                        <!-- for Approval -->
                     </button>
                     <button type="button" class="save_button" *ngIf="Is_spinner">
                         <div class="spinner"></div>

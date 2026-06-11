@@ -6,22 +6,49 @@ import { MAT_DIALOG_DATA, MatDialog, MatDialogRef } from "@angular/material/dial
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { AllApiServiceService } from '../Services/all-api-service.service';
 import { CommonServiceService } from '../Services/common-service.service';
+import { AuthService, User } from '../Services/auth/auth.service';
+import { Subscription } from 'rxjs';
+import { ActivatedRoute } from '@angular/router';
 @Component({
   selector: 'app-all-user',
   imports: [CommonModule, FormsModule, NgxPaginationModule],
   templateUrl: './all-user.component.html',
-  styleUrl: './all-user.component.scss'
+  styleUrl: './all-user.component.scss',
+  standalone: true,
 })
 export class AllUserComponent {
   private pollingInterval: any = null;
   page = 1;
   itemsPerPage: number = 25;
   searchText: any;
+  User: User | null | undefined;
+  private userSubscription !: Subscription;
+  user_id: any;
+  selectedUser: any
   constructor(private titleService: Title,
+    private authService: AuthService,
+    private common_service: CommonServiceService,
     private api_service: AllApiServiceService,
+    private route: ActivatedRoute,
     public ngzone: NgZone,
     public dialog: MatDialog) {
-    this.titleService.setTitle('Add/Update All Users | MTL HALLIBURTON');
+
+    this.route.paramMap.subscribe(params => {
+      this.selectedUser = params.get('user_id');
+      if (this.selectedUser) {
+        this.searchText = this.selectedUser;
+      }
+    });
+    
+    this.userSubscription = this.authService.currentUser$.subscribe(user => {
+      this.User = user;
+      const input = this.User?.userName;
+      let parts: any = input?.split('\\');
+      if (parts && parts.length > 1) {
+        this.user_id = parts[1];
+      }
+    })
+    this.titleService.setTitle('Add/Update All Users | TestTrack HALLIBURTON');
   }
 
   start_polling() {
@@ -40,6 +67,7 @@ export class AllUserComponent {
   }
 
   ngOnDestroy(): void {
+    this.userSubscription?.unsubscribe();
     if (this.pollingInterval) {
       clearInterval(this.pollingInterval)
       this.pollingInterval = null
@@ -78,14 +106,18 @@ export class AllUserComponent {
 
   Is_spinner: boolean = false
   add_update(action_type: any, user_detail: any) {
+    if (this.user_id === user_detail?.userId) {
+      this.common_service.displayWarning('You cannot update your own user acess level.')
+      return;
+    }
     if (action_type === 'Add user') {
       this.Is_spinner = true
     } else {
       this.isLoading = true;
-    
-    setTimeout(() => {
-      this.isLoading = false;
-    }, 500);
+
+      setTimeout(() => {
+        this.isLoading = false;
+      }, 500);
     }
     const dialogRef = this.dialog.open(user_access, {
       data: { action_type: action_type, data: action_type != 'Add user' ? user_detail : '' },
@@ -103,6 +135,11 @@ export class AllUserComponent {
   }
 
   delete_user(userName: any, userId: any) {
+    if (this.user_id === userId) {
+      this.common_service.displayWarning('You cannot delete your own user account')
+      return;
+    }
+
     const dialogRef = this.dialog.open(delete_user, {
       data: {
         userName: userName,
@@ -131,7 +168,7 @@ export class AllUserComponent {
       <div class="col-12">
         <h2>{{this.action_type === 'Add user' ? 'Add User' : 'Update User'}}</h2>
 
-    <form [formGroup]="user_access" (ngSubmit)="onSubmit()">
+    <form autocomplete="off" [formGroup]="user_access" (ngSubmit)="onSubmit()">
        <div class="form-group border p-1 pt-0">
            <div class="form_field">
                <label for="user_id">HAL ID (Example H00000):</label>
@@ -179,7 +216,7 @@ export class AllUserComponent {
 
 export class user_access {
 
-  user_type = ['User', 'Lead', 'Tech', 'Admin', 'Inventory', 'Unknown'];
+  user_type = ['User', 'Lead', 'Tech', 'Admin', 'Inventory'];
   user_access !: FormGroup;
   action_type: any
   user_detail: any
@@ -213,10 +250,10 @@ export class user_access {
         location: this.action_type === 'Update user' ? this.user_detail.location : '',
         roleName: this.user_access.get('access_type')?.value
       }
-       if (this.action_type != 'Update user') {
-        this.Add_new_User(body);  
+      if (this.action_type != 'Update user') {
+        this.Add_new_User(body);
       } else if (this.action_type === 'Update user') {
-        this.update_new_User(body);  
+        this.update_new_User(body);
       }
     } else {
       this.user_access.markAllAsTouched();
@@ -271,7 +308,7 @@ export class user_access {
       <div class="col-12">
         <h2>Delete User Confirmation</h2>
 
-        <form>
+        <form autocomplete="off">
         <label>Are you sure you want to delete user: <strong>{{userName}}</strong>? <br> This action cannot be undone.</label>
         <div class="btn_div">
         <button class="yesbtn" (click)="delete_User()" *ngIf="!Is_spinner">Yes, Delete</button>
@@ -307,7 +344,7 @@ export class delete_user {
 
   Is_spinner: boolean = false;
   delete_User() {
-    if (this.userName != '') {
+    if (this.userId != '') {
       this.Is_spinner = true
       this.api_service.delete_User(this.userId).subscribe({
         next: (res) => {

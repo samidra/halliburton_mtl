@@ -50,8 +50,16 @@ export const serverRoutes: ServerRoute[] = [
     renderMode: RenderMode.Server,
   },
   {
+    path: 'test/:dataCenter/:taskNumber',
+    renderMode: RenderMode.Server,
+  },
+  {
     path: 'all-user-detail',
     renderMode: RenderMode.Prerender,
+  },
+   {
+    path: 'all-user-detail/:user_id',
+    renderMode: RenderMode.Server,
   },
   {
     path: 'all-facility-detail',
@@ -67,6 +75,14 @@ export const serverRoutes: ServerRoute[] = [
   },
   {
     path: 'all-tools-detail',
+    renderMode: RenderMode.Prerender,
+  },
+   {
+    path: 'help-center',
+    renderMode: RenderMode.Prerender,
+  },
+   {
+    path: 'current-user-detail',
     renderMode: RenderMode.Prerender,
   },
   {

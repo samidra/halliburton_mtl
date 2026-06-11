@@ -7,6 +7,8 @@ import { MAT_DIALOG_DATA, MatDialog, MatDialogRef } from "@angular/material/dial
 import { CommonServiceService } from '../Services/common-service.service';
 import { Title } from '@angular/platform-browser';
 import { AllApiServiceService } from '../Services/all-api-service.service';
+import { AuthService, User } from '../Services/auth/auth.service';
+import { Subscription } from 'rxjs';
 
 // interface PslRate {
 //   resource: string;
@@ -18,7 +20,8 @@ import { AllApiServiceService } from '../Services/all-api-service.service';
   selector: 'app-rate-chart',
   imports: [CommonModule, FormsModule, ReactiveFormsModule, NgxPaginationModule],
   templateUrl: './rate-chart.component.html',
-  styleUrl: './rate-chart.component.scss'
+  styleUrl: './rate-chart.component.scss',
+  standalone: true,
 })
 export class RateChartComponent {
 
@@ -37,15 +40,27 @@ export class RateChartComponent {
   startMonthIndex: number | null = null;
   page = 1;
   itemsPerPage: number = 25;
+  User: User | null | undefined;
+  private userSubscription !: Subscription;
+  user_id: any;
   private pollingInterval: ReturnType<typeof setInterval> | null = null;
-  
+
   constructor(private titleService: Title,
     private fb: FormBuilder,
+    private authService: AuthService,
     public dialog: MatDialog,
     private common_service: CommonServiceService,
     private api_service: AllApiServiceService,
     private ngZone: NgZone) {
-    this.titleService.setTitle("Rate Chart | MTL HALLIBURTON");
+    this.userSubscription = this.authService.currentUser$.subscribe(user => {
+      this.User = user;
+      const input = this.User?.userName;
+      let parts: any = input?.split('\\');
+      if (parts && parts.length > 1) {
+        this.user_id = parts[1];
+      }
+    })
+    this.titleService.setTitle("Rate Chart | TestTrack HALLIBURTON");
   }
 
   ngOnInit(): void {
@@ -53,6 +68,7 @@ export class RateChartComponent {
   }
 
   ngOnDestroy(): void {
+    this.userSubscription?.unsubscribe();
     if (this.pollingInterval) {
       clearInterval(this.pollingInterval);
       this.pollingInterval = null;
@@ -77,7 +93,6 @@ export class RateChartComponent {
       next: (res: any) => {
         this.rate_chart_list = res;
         this.rate_chart_list = this.rate_chart_list.flatMap((item: any) => item.rates)
-        console.log(this.rate_chart_list)
         this.isLoading = false;
       },
       error: (err) => {
@@ -145,10 +160,8 @@ export class RateChartComponent {
       "october": Number(item.october),
       "november": Number(item.november),
       "december": Number(item.december),
-      "userID": 'H317697'
+      "userID": this.user_id
     }
-
-    console.log(body)
     this.api_service.update_resource_rateChart(body).subscribe({
       next: (res) => {
         this.isLoading = true
@@ -170,15 +183,21 @@ export class RateChartComponent {
       next: (res: any) => {
         this.Is_spinner = false
         const dialogRef = this.dialog.open(add_new_resource, {
-          data: { res: res },
+          data: { res: res, user_id: this.user_id, },
           width: '400px',
           // height: '320px',
           panelClass: 'custom-dialog-container'
         })
         dialogRef.afterClosed().subscribe(result => {
           this.Is_spinner = false
-          this.isLoading = true
-          this.startPolling()
+          if (this.pollingInterval) {
+            clearInterval(this.pollingInterval!);
+            this.pollingInterval = null;
+            console.log('Polling stopped due to active filters.');
+          }
+          this.Get_all_rateChart_rate()
+          // this.isLoading = true
+          // this.startPolling()
         });
       },
       error: (err) => {
@@ -233,7 +252,7 @@ export class RateChartComponent {
     <div class="col-12">
       <h2>Add Resource</h2>
 
-      <form class="mt-1">
+      <form class="mt-1" autocomplete="off">
         <div class="form-group">
           <div class="form_field">
             <label for="resources">Resources: </label>
@@ -269,7 +288,7 @@ export class RateChartComponent {
 export class add_new_resource {
   resource_name = ''
   res: any
-
+  user_id: any
   resourcesOptions: string[] = [];
   @ViewChild('modalContainer', { static: false }) modalContainer!: ElementRef;
   @ViewChild('dropdownContainer') dropdownContainer!: ElementRef;
@@ -294,6 +313,7 @@ export class add_new_resource {
     private api_service: AllApiServiceService,
     private common_service: CommonServiceService) {
     this.res = data.res
+    this.user_id = data.user_id
   }
 
   show() {
@@ -304,12 +324,22 @@ export class add_new_resource {
   }
 
   filteredAutocomplete() {
-    this.resourcesOptions = this.res
+    const matchingOptions = this.res
       .map((item: any) => item.shortDescription)
       .filter((item: string) => item.toLowerCase().includes(this.resource_name.toLowerCase()));
+
+    this.resourcesOptions = matchingOptions.length > 0 ? matchingOptions : ['No data with this search'];
   }
 
   selectOption(option: string): void {
+
+    if (option === 'No data with this search') {
+      this.common_service.displayWarning(`Please select valid resource`)
+      this.resource_name = ''
+      this.show()
+      return
+    };
+
     this.resource_name = option
     this.resourcesOptions = [];
     this.modalContainer.nativeElement.style.height = '150px';
@@ -321,23 +351,36 @@ export class add_new_resource {
 
   Is_spinner: boolean = false;
   add_new_resource(): void {
+   
     if (this.resource_name != '') {
+      
+       const matchingOptions = this.res
+      .map((item: any) => item.shortDescription)
+      .filter((item: string) => item.toLowerCase().includes(this.resource_name.toLowerCase()));
+
+      if (!matchingOptions.includes(this.resource_name)) {
+        this.common_service.displayWarning(`Please select valid resource`)
+        this.resource_name = ''
+        this.show()
+        return
+      }
+
       this.Is_spinner = true
       const body = {
         resource: this.resource_name,
         year: new Date().getFullYear(),
-        userID: 'H317697'
+        userID: this.user_id
       }
 
       this.api_service.Add_resource_rateChart(body).subscribe({
         next: (res) => {
-          console.log(res)
           this.common_service.displaySuccess('The resource has been added successfully. ');
           this.dialogRef.close()
           this.Is_spinner = false
         },
         error: (err) => {
           console.error('Error fetching:', err.message);
+          this.common_service.displayWarning('Please select a resource from list to add resource.');
           this.Is_spinner = false
         }
       })

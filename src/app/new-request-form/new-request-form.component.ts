@@ -1,20 +1,23 @@
-import { Component, ElementRef, HostListener, Renderer2, ViewChild } from '@angular/core';
+import { Component, ElementRef, HostListener, Inject, Renderer2, ViewChild } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
-import { MatDialog, MatDialogRef } from "@angular/material/dialog"
+import { MAT_DIALOG_DATA, MatDialog, MatDialogRef } from "@angular/material/dialog"
 import { Title } from '@angular/platform-browser';
 import { AllApiServiceService } from '../Services/all-api-service.service';
 import { CommonServiceService } from '../Services/common-service.service';
 import { Router } from '@angular/router';
 import { LocalStorageService } from '../Services/local-storage.service';
+import { Subscription } from 'rxjs';
+import { AuthService, User } from '../Services/auth/auth.service';
 @Component({
   selector: 'app-new-request-form',
   imports: [
     CommonModule, FormsModule, ReactiveFormsModule
   ],
   templateUrl: './new-request-form.component.html',
-  styleUrl: './new-request-form.component.scss'
+  styleUrl: './new-request-form.component.scss',
+  standalone: true,
 })
 export class NewRequestFormComponent {
   new_work_request !: FormGroup;
@@ -26,6 +29,7 @@ export class NewRequestFormComponent {
   groupOptions: string[] = [];
   workOrderList: any = []
   chargeCodeList: any = []
+  activityCodeShow: boolean = false;
   isLoading: boolean = true;
   @ViewChild('dropdownContainer') dropdownContainer!: ElementRef;
   @ViewChild('inputField') inputField!: ElementRef;
@@ -50,7 +54,11 @@ export class NewRequestFormComponent {
 
   }
 
+  User: User | null | undefined | any;
+  private userSubscription !: Subscription;
+  user_id: any;
   constructor(private fb: FormBuilder,
+    private authService: AuthService,
     public dialog: MatDialog,
     public router: Router,
     private titleService: Title,
@@ -58,10 +66,20 @@ export class NewRequestFormComponent {
     private commonService: CommonServiceService,
     private api_service: AllApiServiceService) {
 
+    this.userSubscription = this.authService.currentUser$.subscribe(user => {
+      this.User = user;
+      const input = this.User?.userName;
+      let parts: any = input?.split('\\');
+      if (parts && parts.length > 1) {
+        this.user_id = parts[1];
+      }
+    })
+
     this.new_work_request = this.fb.group({
       Select_Charge_Code_or_Work_Order: ['', Validators.required],
       chargeCode: [''],
-      workOrder: [''],
+      workOrder: ['', [Validators.pattern('^[0-9]+$')]],
+      activityCode: ['',],
       requestDescription: ['', [Validators.required]],
       tools: ['', Validators.required],
       location: ['', Validators.required],
@@ -70,15 +88,20 @@ export class NewRequestFormComponent {
       pslCompany: ['', Validators.required],
       group: ['', Validators.required],
       lithium_batteries: ['', Validators.required],
-      Radiation: ['', Validators.required]
+      Radiation: ['', Validators.required],
+      fileAttachment: [null]
     });
 
     this.form_validator()
   }
 
   ngOnInit(): void {
-    const title = "New Work Request | MTL HALLIBURTON";
+    const title = "New Work Request | TestTrack HALLIBURTON";
     this.titleService.setTitle(title);
+  }
+
+  ngOnDestroy() {
+    this.userSubscription?.unsubscribe();
   }
 
   input_location() {
@@ -91,13 +114,19 @@ export class NewRequestFormComponent {
     });
 
     this.new_work_request.get('lithium_batteries')?.valueChanges.subscribe(value => {
-      if (value != true) { return }
+      if (value != true) {
+        this.new_work_request.removeControl('lithium_batteries_description');
+        return
+      }
       this.new_work_request.addControl('lithium_batteries_description', new FormControl('', [Validators.required]));
       if (value === true) { this.new_work_request.get('lithium_batteries_description')?.setValue('') }
     })
 
     this.new_work_request.get('Radiation')?.valueChanges.subscribe(value => {
-      if (value != true) { return }
+      if (value != true) {
+        this.new_work_request.removeControl('Radiation_description');
+        return
+      }
       this.new_work_request.addControl('Radiation_description', new FormControl('', [Validators.required]));
       if (value === true) { this.new_work_request.get('Radiation_description')?.setValue('') }
     })
@@ -113,6 +142,20 @@ export class NewRequestFormComponent {
         });
       }
     });
+
+    this.new_work_request.get('Select_Charge_Code_or_Work_Order')?.valueChanges.subscribe((value) => {
+      if (value === 'workOrder') {
+        this.chargeCodeList = []
+        this.activityCodeShow = false
+        this.new_work_request.get('activityCode')?.setValue('')
+        this.new_work_request.get('activityCode')?.clearValidators()
+        this.new_work_request.get('activityCode')?.markAsUntouched()
+        this.new_work_request.get('activityCode')?.updateValueAndValidity()
+      } else {
+        this.workOrderList = []
+      }
+    })
+
   }
 
   handleLocationChange(value: string): void {
@@ -137,15 +180,25 @@ export class NewRequestFormComponent {
 
   add_workOrder(field: any) {
     if (field === 'workOrder') {
-      const value = this.new_work_request.get('workOrder')?.value.toLowerCase()
-      if (value === '' || this.workOrderList.includes(value)) {
-        if (value === '') {
-          this.commonService.displayWarning('Work order cannot be empty.');
-        } else {
-          this.commonService.displayWarning('This work order is already added.');
-        }
+
+      const rawValue = this.new_work_request.get('workOrder')?.value;
+      const value = rawValue != null ? String(rawValue).trim() : '';
+
+      if (!value) {
+        this.commonService.displayWarning('Work order cannot be empty.');
         return;
       }
+
+      if (value.length !== 9 || !/^\d{9}$/.test(value)) {
+        this.commonService.displayWarning('Work order must be exactly 9 digits.');
+        return;
+      }
+
+      if (this.workOrderList.includes(value)) {
+        this.commonService.displayWarning('This work order is already added.');
+        return;
+      }
+
       this.workOrderList.push(value);
       this.new_work_request.get('workOrder')?.setValue('');
     }
@@ -156,6 +209,15 @@ export class NewRequestFormComponent {
     const index = this.chargeCodeList.indexOf(item);
     if (index !== -1) {
       this.chargeCodeList.splice(index, 1);
+      if (this.chargeCodeList.some((item: string) => item.startsWith('HT'))) {
+        this.activityCodeShow = true;
+      } else {
+        this.activityCodeShow = false
+        this.new_work_request.get('activityCode')?.setValue('')
+        this.new_work_request.get('activityCode')?.clearValidators()
+        this.new_work_request.get('activityCode')?.markAsUntouched()
+        this.new_work_request.get('activityCode')?.updateValueAndValidity()
+      }
     }
   }
 
@@ -177,7 +239,6 @@ export class NewRequestFormComponent {
   get_data_create_request() {
     this.api_service.get_data_create_request().subscribe((res) => {
       this.allDataRes = res
-      console.log(res)
       this.isLoading = false;
       this.subscribeToFieldChanges('chargeCode', 'charge_Code')
       this.subscribeToFieldChanges('tools', 'tool')
@@ -185,6 +246,33 @@ export class NewRequestFormComponent {
       this.subscribeToFieldChanges('pslCompany', 'psL_Company')
       this.subscribeToFieldChanges('group', 'group')
     })
+  }
+
+  fileBase64: string = '';
+  fileName: any = '';
+  onFileChange(event: any) {
+    const file = event.target.files[0];
+    if (file) {
+      // this.new_work_request.patchValue({
+      //   fileAttachment: file
+      // });
+      this.fileName = file.name
+      this.convertToBase64(file);
+    }
+  }
+
+  convertToBase64(file: File) {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => {
+      this.fileBase64 = reader.result as string;
+      console.log('File converted:', this.fileBase64);
+    };
+    reader.onerror = (error) => {
+      console.error('File read error:', error);
+      this.commonService.displayWarning('Failed to read file.');
+      this.fileBase64 = '';
+    };
   }
 
   filterOptions(field: string, value: string, dataKey: string): void {
@@ -261,12 +349,44 @@ export class NewRequestFormComponent {
       const selected = this.new_work_request.get('chargeCode')?.value;
       if (!this.chargeCodeList.includes(selected)) {
         this.chargeCodeList.push(selected);
+        if (this.chargeCodeList.some((item: string) => item.startsWith('HT'))) {
+          this.activityCodeShow = true;
+          this.new_work_request.get('activityCode')?.setValidators([Validators.required]);
+          this.new_work_request.get('activityCode')?.updateValueAndValidity();
+        }
       } else {
         this.commonService.displayWarning('Charge Code already exists');
       }
       this.new_work_request.get('chargeCode')?.setValue('');
       (this as any)[field_name] = [];
     }
+  }
+
+  toggleSelection(option: string) {
+    if (option === 'No data with this search') {
+      this.errorMessage('Charge Code', 'chargeCode')
+      return
+    };
+
+    const index = this.chargeCodeList.indexOf(option);
+
+    if (index > -1) {
+      this.chargeCodeList.splice(index, 1);
+    } else {
+      this.chargeCodeList.push(option);
+    }
+
+    const hasHTCode = this.chargeCodeList.some((item: string) => item.startsWith('HT'));
+    this.activityCodeShow = hasHTCode;
+
+    const activityCtrl = this.new_work_request.get('activityCode');
+    if (hasHTCode) {
+      activityCtrl?.setValidators([Validators.required]);
+    } else {
+      activityCtrl?.clearValidators();
+    }
+    activityCtrl?.updateValueAndValidity();
+    this.new_work_request.get('chargeCode')?.setValue('');
   }
 
   location_index: any
@@ -292,14 +412,30 @@ export class NewRequestFormComponent {
       option.toLowerCase().includes(searchTerm)
     );
 
-
     this.resourcesOptions = matchingOptions.length > 0 ? matchingOptions : ['No data with this search'];
 
     const formControl = this.new_work_request.get('resources');
     if (formControl) {
       const currentValue = formControl.value;
-      const isValidOption = allOptions.includes(currentValue);
 
+      const resourcesWiseTestProcedure =
+        this.allDataRes?.[0]?.resourcesWiseTestProcedure?.find(
+          (item: { resource: string }) =>
+            item.resource?.trim().toLowerCase() === currentValue?.trim().toLowerCase()
+        );
+
+      const resourceWise_TestProcedure =
+        resourcesWiseTestProcedure?.res?.[0] === 1 ? true : false;
+
+      const fileAttachmentCtrl = this.new_work_request.get('fileAttachment');
+      if (resourceWise_TestProcedure) {
+        fileAttachmentCtrl?.setValidators([Validators.required])
+      } else {
+        fileAttachmentCtrl?.clearValidators()
+      }
+      fileAttachmentCtrl?.updateValueAndValidity()
+
+      const isValidOption = allOptions.includes(currentValue);
       if (!isValidOption && currentValue) {
         formControl.setErrors({ noMatch: true });
       } else {
@@ -311,6 +447,7 @@ export class NewRequestFormComponent {
   Is_spinner: boolean = false;
   submit_res: any
   onSubmit() {
+
     if (this.new_work_request.valid) {
 
       const selectedType = this.new_work_request.get('Select_Charge_Code_or_Work_Order')?.value;
@@ -329,65 +466,62 @@ export class NewRequestFormComponent {
         return
       }
 
-      const dialogRef = this.dialog.open(submit_approval_message, {
-        width: '300px',
-        panelClass: 'custom-dialog-container'
-      })
+      if (this.new_work_request.get('activityCode')?.value != '') {
+        const activityCodeValue = this.new_work_request.get('activityCode')?.value;
 
-      dialogRef.afterClosed().subscribe(result => {
+        if (!/^[a-zA-Z0-9]{4}$/.test(activityCodeValue)) {
+          this.commonService.displayWarning('Activity Code must be exactly 4 alphanumeric characters.');
+          return;
+        }
+      }
+      this.Is_spinner = true
+      const body = {
 
-        if (result === 'yes') {
-          this.Is_spinner = true
-          const body = {
+        userId: this.user_id,
+        WorkReqNumber: '',
+        charge_Code: '',
+        charge_Codes: this.new_work_request.get('Select_Charge_Code_or_Work_Order')?.value === 'chargeCode' ? this.chargeCodeList : [],
+        activityCode: this.new_work_request.get('activityCode')?.value || '',
+        work_Orders: this.new_work_request.get('Select_Charge_Code_or_Work_Order')?.value != 'chargeCode' ? this.workOrderList : [],
+        request_Description: this.new_work_request.get('requestDescription')?.value,
+        tool: this.new_work_request.get('tools')?.value,
+        test_Location: this.new_work_request.get('location')?.value,
+        resource: this.new_work_request.get('resources')?.value,
+        duration_days: Number(this.new_work_request.get('duration')?.value),
+        psL_Company: this.new_work_request.get('pslCompany')?.value,
+        group: this.new_work_request.get('group')?.value,
+        startDate: null,
+        endDate: null,
+        lithiumBattery: this.new_work_request.get('lithium_batteries')?.value === true ? true : false,
+        lithiumBatteryDescription: this.new_work_request.get('lithium_batteries_description')?.value,
+        radiation: this.new_work_request.get('Radiation')?.value === true ? true : false,
+        radiationDescription: this.new_work_request.get('Radiation_description')?.value,
+        file: this.fileBase64,
+        fileName: this.fileName,
+      }
 
-            userId: 'H317697',
-            WorkReqNumber: '',
-            charge_Code: '',
-            charge_Codes: this.new_work_request.get('Select_Charge_Code_or_Work_Order')?.value === 'chargeCode' ? this.chargeCodeList : [],
-            work_Orders: this.new_work_request.get('Select_Charge_Code_or_Work_Order')?.value != 'chargeCode' ? this.workOrderList : [],
-            request_Description: this.new_work_request.get('requestDescription')?.value,
-            tool: this.new_work_request.get('tools')?.value,
-            test_Location: this.new_work_request.get('location')?.value,
-            resource: this.new_work_request.get('resources')?.value,
-            duration_days: Number(this.new_work_request.get('duration')?.value),
-            psL_Company: this.new_work_request.get('pslCompany')?.value,
-            group: this.new_work_request.get('group')?.value,
-            startDate: null,
-            endDate: null,
-            lithiumBattery: this.new_work_request.get('lithium_batteries')?.value === true ? true : false,
-            lithiumBatteryDescription: this.new_work_request.get('lithium_batteries_description')?.value,
-            radiation: this.new_work_request.get('Radiation')?.value === true ? true : false,
-            radiationDescription: this.new_work_request.get('Radiation_description')?.value
+      this.api_service.submit_new_work_request(body).subscribe({
+        next: (res) => {
+          this.submit_res = res
+
+          if (this.submit_res.status) {
+            this.Is_spinner = false
+            this.new_work_request.reset()
+            this.resourcesOptions = [];
+
+            this.local_storage.setDataFormCalender(this.submit_res);
+            this.router.navigate([`calendar`, this.submit_res.wRnumber, this.submit_res.taskNumber]);
+            this.commonService.displaySuccess("New work request submitted sucessfully. Now select dates as per duration you entered.")
+          } else {
+            this.commonService.displayWarning("Some error occur please try again.")
+            this.Is_spinner = false
           }
+        },
+        error: (err) => {
 
-
-          this.api_service.submit_new_work_request(body).subscribe({
-            next: (res) => {
-              this.submit_res = res
-
-              if (this.submit_res.status) {
-                this.Is_spinner = false
-                this.new_work_request.reset()
-                this.resourcesOptions = [];
-
-                this.local_storage.setDataFormCalender(this.submit_res);
-                this.router.navigate([`calendar`, this.submit_res.wRnumber, this.submit_res.taskNumber]);
-                this.commonService.displaySuccess("New work request submitted sucessfully. Now select dates as per duration you entered.")
-              } else {
-                this.commonService.displayWarning("Some error occur please try again.")
-                this.Is_spinner = false
-              }
-            },
-            error: (err) => {
-
-              this.Is_spinner = false
-              this.commonService.displayWarning(err.message)
-              this.commonService.displayWarning('Failed to submit new work request. Please try again later.')
-            }
-          })
-
-        } else {
-          this.commonService.displayWarning('To submit your request, click Submit, review the details, and then click Proceed.')
+          this.Is_spinner = false
+          this.commonService.displayWarning(`` + err.message)
+          this.commonService.displayWarning('Failed to submit new work request. Please try again later.')
         }
       })
 
@@ -410,14 +544,22 @@ export class NewRequestFormComponent {
     const isgroupValid = groupControl?.valid;
 
     if (isrequestDescriptionValid && islocationValid && ispslCompanyValid && isgroupValid) {
+      if (this.new_work_request.get('activityCode')?.value != '') {
+        const activityCodeValue = this.new_work_request.get('activityCode')?.value;
 
+        if (!/^[a-zA-Z0-9]{4}$/.test(activityCodeValue)) {
+          this.commonService.displayWarning('Activity Code must be exactly 4 alphanumeric characters.');
+          return;
+        }
+      }
       this.is_draft_spinner = true
       const body = {
 
-        userId: 'H317697',
+        userId: this.user_id,
         WorkReqNumber: '',
         charge_Code: '',
         charge_Codes: this.new_work_request.get('Select_Charge_Code_or_Work_Order')?.value === 'chargeCode' ? this.chargeCodeList : [],
+        activityCode: this.new_work_request.get('activityCode')?.value || '',
         work_Orders: this.new_work_request.get('Select_Charge_Code_or_Work_Order')?.value != 'chargeCode' ? this.workOrderList : [],
         request_Description: this.new_work_request.get('requestDescription')?.value || '',
         tool: this.new_work_request.get('tools')?.value || '',
@@ -431,7 +573,9 @@ export class NewRequestFormComponent {
         lithiumBattery: this.new_work_request.get('lithium_batteries')?.value === true ? true : false,
         lithiumBatteryDescription: this.new_work_request.get('lithium_batteries_description')?.value,
         radiation: this.new_work_request.get('Radiation')?.value === true ? true : false,
-        radiationDescription: this.new_work_request.get('Radiation_description')?.value
+        radiationDescription: this.new_work_request.get('Radiation_description')?.value,
+        file: this.fileBase64,
+        fileName: this.fileName,
       }
 
       this.api_service.draft_new_work_request(body).subscribe({
@@ -452,7 +596,7 @@ export class NewRequestFormComponent {
         error: (err) => {
 
           this.is_draft_spinner = false
-          this.commonService.displayWarning(err.message)
+          this.commonService.displayWarning(`` + err.message)
           this.commonService.displayWarning('Failed to submit new work request. Please try again later.')
         }
       })
@@ -470,6 +614,7 @@ export class NewRequestFormComponent {
 
   add_chargeCode() {
     const dialogRef = this.dialog.open(charge_code, {
+      data: { user_id: this.user_id },
       width: '300px',
       panelClass: 'custom-dialog-container'
     })
@@ -477,6 +622,7 @@ export class NewRequestFormComponent {
 
   add_tools() {
     const dialogRef = this.dialog.open(add_tools, {
+      data: { user_id: this.user_id },
       width: '300px',
       panelClass: 'custom-dialog-container'
     })
@@ -495,7 +641,7 @@ export class NewRequestFormComponent {
       <div class="col-12">
         <h2>Add New Tool to System</h2>
 
-        <form>
+        <form autocomplete="off">
         <label for="add_tool">Part Number:</label>
         <input type="text" id="add_tool" [(ngModel)] ='new_tool_Value' name="add_tool" placeholder="Add New Tool to System">
         <span><strong>Note:</strong> This request will be sent to an admin, save request as draft until tool is added. Check back in 2-3 days.</span>
@@ -517,10 +663,13 @@ export class NewRequestFormComponent {
 export class add_tools {
 
   new_tool_Value = ''
-
+  user_id: any
   constructor(public dialogRef: MatDialogRef<add_tools>,
     private commonService: CommonServiceService,
-    private api_service: AllApiServiceService) { }
+    @Inject(MAT_DIALOG_DATA) public data: any,
+    private api_service: AllApiServiceService) {
+    this.user_id = data.user_id
+  }
 
   close() {
     this.dialogRef.close()
@@ -532,11 +681,9 @@ export class add_tools {
     if (this.new_tool_Value != '') {
       this.Is_spinner = true
 
-
-
-
       const body = {
-        Part_Number: this.new_tool_Value
+        Part_Number: this.new_tool_Value,
+        userID: this.user_id
       }
       this.api_service.add_tool(body).subscribe({
         next: (res) => {
@@ -546,7 +693,7 @@ export class add_tools {
           this.commonService.displaySuccess("New Tool request submitted sucessfully.")
         }, error: (err) => {
           this.Is_spinner = false
-          this.commonService.displayWarning(err.message)
+          this.commonService.displayWarning(`` + err.message)
           this.commonService.displayWarning('Failed to submit Tool Request. Please try again later.')
         }
       })
@@ -568,7 +715,7 @@ export class add_tools {
       <div class="col-12">
         <h2>Add New Charge Code</h2>
 
-        <form>
+        <form autocomplete="off">
         <label for="add_tool">Charge Code:</label>
         <input type="text" id="add_tool" [(ngModel)] = "charge_code_Value" name="add_tool" placeholder="Add New Charge Code">
         <span><strong>Note:</strong> This request will be sent to an admin, save request as draft until tool is added. Check back in 2-3 days.</span>
@@ -590,10 +737,13 @@ export class add_tools {
 export class charge_code {
 
   charge_code_Value = ''
-
+  user_id: any;
   constructor(public dialogRef: MatDialogRef<charge_code>,
     private commonService: CommonServiceService,
-    private api_service: AllApiServiceService) { }
+    @Inject(MAT_DIALOG_DATA) public data: any,
+    private api_service: AllApiServiceService) {
+    this.user_id = data.user_id
+  }
 
   close() {
     this.dialogRef.close()
@@ -605,7 +755,8 @@ export class charge_code {
     if (this.charge_code_Value != '') {
       this.Is_spinner = true
       const body = {
-        Charge_Code: this.charge_code_Value
+        Charge_Code: this.charge_code_Value,
+        userID: this.user_id
       }
 
       this.api_service.add_chargeCode(body).subscribe({
@@ -616,7 +767,7 @@ export class charge_code {
           this.commonService.displaySuccess("Charge code request submitted sucessfully.")
         }, error: (err) => {
           this.Is_spinner = false
-          this.commonService.displayWarning(err.message)
+          this.commonService.displayWarning(`` + err.message)
           this.commonService.displayWarning('Failed to submit Charge Code Request. Please try again later.')
         }
 
@@ -628,42 +779,3 @@ export class charge_code {
 
 }
 
-@Component({
-  selector: 'charge_code',
-  imports: [
-    CommonModule, FormsModule, ReactiveFormsModule
-  ],
-  template: `
-  <div class="container-fluid add_tool">
-    <div class="row">
-      <div class="col-12">
-        <!-- <h2>This information must be read before proceeding.</h2> -->
-
-        <form>
-        <span class="span_proceed">
-          <strong>Note:</strong>
-        To submit this request for approval, you must select test duration dates. Click 'Proceed' to open the Calendar. If no dates are selected, the request won't be approved by the authorized admin.
-        </span>
-        <div class="btn_div">
-        <button class="yesbtn" (click)="submit_yes('yes')">Proceed</button>
-        </div>
-        </form>
-      </div>
-    </div>
-  </div>
-  `,
-  styleUrl: './new-request-form.component.scss'
-})
-
-export class submit_approval_message {
-
-  constructor(
-    public dialogRef: MatDialogRef<submit_approval_message>) { }
-
-  submit_yes(data: any) {
-    if (data === 'yes') {
-      this.dialogRef.close('yes')
-    }
-  }
-
-}

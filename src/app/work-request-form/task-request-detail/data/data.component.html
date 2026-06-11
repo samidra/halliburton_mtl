@@ -1,0 +1,115 @@
+<div class="container-fluid">
+  <div class="row">
+    <div class="col-12 p-2" style="display: flex; flex-direction: column;align-items: center; height: 40vh;">
+      <h2>Task Data for `{{ task_id}}` <br>
+        <span>Select the channels you want to view, Click 'Submit' when finished.</span>
+      </h2>
+      <form class="border p-2" autocomplete="off">
+        <div class="row" style="width: 100%;">
+          <div class="col-5">
+            <div class="form_field">
+              <label for="channel">Channel: </label>
+              <div class="form_field_dropdown" style="width: 100%;">
+                <input id="Channel" readonly [(ngModel)]="selected_channel" type="text" (click)="show()"
+                  [ngModelOptions]="{standalone: true}" #channelModel="ngModel" class="form-control"
+                  placeholder="Search Channel" #inputField required>
+                <ul *ngIf="channelOptions.length !=0 && showlistchannelOptions" class="list_drop" #dropdownContainer>
+                  <input id="Channel" [(ngModel)]="searchChannel" type="text" style="width: 100%;"
+                    (ngModelChange)="filteredAutocomplete()" [ngModelOptions]="{standalone: true}" class="form-control"
+                    placeholder="Search Channel">
+                  <li class="selected-item">
+                    <input type="checkbox"
+                      [checked]="channelOptions.length === selectedChannelOptions.length && channelOptions.length > 0"
+                      (change)="toggleSelectionAll()">
+                    <span class="label-text" (click)="toggleSelectionAll()">Select All</span>
+                  </li>
+                  <li *ngFor="let item of selectedChannelOptions" class="selected-item">
+                    <input type="checkbox" checked (change)="toggleSelection(item)">
+                    <span class="label-text" (click)="removechargeCode(item)">{{ item }}</span>
+                  </li>
+                  <ng-container *ngFor="let option of channelOptions"
+                    (click)="option !== 'No data with this search' ? filterData(option) : errorMessage('Channel')">
+                    <li *ngIf="!selectedChannelOptions.includes(option)" (click)="toggleSelection(option)"
+                      class="selected-item">
+                      <input type="checkbox" [checked]="false" *ngIf="option !== 'No data with this search'">
+                      <span class="label-text">{{ option }}</span>
+                    </li>
+                  </ng-container>
+
+                </ul>
+              </div>
+
+              <div class="text-danger"
+                *ngIf="(channelModel.invalid && channelModel.touched) || (!selected_channel && isSubmitted)"
+                style="display: flex; justify-content: flex-end; font-size: 0.75em; font-weight: 600;">
+                Channel is required
+              </div>
+            </div>
+          </div>
+          <div class="col-7">
+            <div class="form_field">
+              <label for="date">Date: </label>
+              <div style="display: flex;">
+
+                <input id="datetime-local" #startCtrl="ngModel" [(ngModel)]="startDate" type="datetime-local"
+                  [ngModelOptions]="{standalone: true}" class="form-control" required style="width: 200px;">
+
+                &nbsp; &mdash; &nbsp;
+
+                <input type="datetime-local" #endCtrl="ngModel" [(ngModel)]="endDate"
+                  [ngModelOptions]="{standalone: true}" class="form-control" required style="width: 200px;">
+
+              </div>
+
+              <div class="text-danger" *ngIf="(startCtrl.invalid && startCtrl.touched) || (isSubmitted && !startDate)"
+                style="display: flex; justify-content: flex-end; font-size: 0.75em; font-weight: 600;">
+                Start Date is required
+              </div>
+              <div class="text-danger" *ngIf="(endCtrl.invalid && endCtrl.touched) || (isSubmitted && !endDate)"
+                style="display: flex; justify-content: flex-end; font-size: 0.75em; font-weight: 600;">
+                End Date is required
+              </div>
+            </div>
+          </div>
+
+          <div class="col-3">
+            <div class="form_field">
+              <div style="display: flex; align-items: center;">
+                <label for="fileExport" style="width: 120px;">Export to File:</label>
+                <input type="checkbox" name="fileExport" id="fileExport" [(ngModel)]="fileExport"
+                  [ngModelOptions]="{standalone: true}" style="width: 20px; height: 20px;">
+              </div>
+            </div>
+          </div>
+          <div class="col-9">
+            <div class="btn_div">
+              <button type="button" class="yesbtn" (click)="submitForm(channelModel, startCtrl, endCtrl)">
+                Submit
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </form>
+
+    </div>
+    <div class="col-12" *ngIf="showGraph">
+      <hr class="mt-2 mb-2">
+      <div class="btn_divExport">
+        <button type="button" class="yesbtn" (click)="downloadExcel()">Download Excel</button>
+        <span style="margin-top: 10px; color: rgb(146, 3, 3); font-weight: 700; font-size: 0.7em;">NOTE** <br>
+          (To see specific line only on graph, You can Tun it ON/OFF from the right side colour icon.) <br>
+          (Live Data Graph, You can Zoom In/Out and Hover on the line to see the details.)
+        </span>
+      </div>
+      <div class="chart-container">
+        <div echarts [options]="chartOption" class="chart-container">
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="loader" *ngIf="isLoading">
+  <div class="spinner"></div>
+</div>

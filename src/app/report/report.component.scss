@@ -52,7 +52,7 @@
   display: flex;
   justify-content: flex-start;
   align-items: center;
-  width: max-content;
+  width: max-content; 
   padding: 2px;
 
   label {
@@ -237,23 +237,23 @@ table {
     background-color: grey;
 
     th {
-      font-size: 0.8em;
+      font-size: 0.72em;
       padding: 6px;
       background-color: rgb(216, 216, 216);
       font-weight: 700;
-      white-space: nowrap; // prevents breaking
+      word-wrap: break-word;
     }
   }
 
   tbody {
     td {
       padding: 6px 2px;
-      font-size: 0.68em;
+      font-size: 0.64em;
       font-weight: 600;
       color: rgb(41, 41, 41);
       cursor: default;
       background-color: transparent !important;
-      // white-space: nowrap;   // keeps equal width consistent
+     word-wrap: break-word;
     }
   }
 
@@ -323,4 +323,30 @@ table {
 
 .custom-th {
   width: 2px;
+}
+
+.list_drop {
+  position: absolute;
+  background: white;
+  box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
+  z-index: 2;
+  border: 1px solid rgb(209, 208, 208);
+  list-style: none;
+  height: min-content;
+  max-height: 250px;
+  width: 400px;
+  overflow-y: scroll;
+  overflow-x: hidden;
+  padding-bottom: 3px 0;
+
+  li {
+    font-size: 0.75em;
+    padding: 5px;
+    font-weight: 500;
+
+    &:hover {
+      background-color: rgb(231, 231, 231);
+      cursor: pointer;
+    }
+  }
 }

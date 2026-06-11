@@ -1,0 +1,41 @@
+<div class="container-fluid">
+  <div class="profile-card">
+    <div class="info-profile" style="display: flex; justify-content: center;">
+      <i class="bi bi-person-circle"></i>
+    </div>
+    <div class="info-group">
+      <label>Name:</label>
+      <p>{{user?.displayName}}</p>
+    </div>
+
+    <div class="info-group">
+      <label>Hall ID:</label>
+      <p>{{ user_id }}</p>
+    </div>
+
+    <div class="info-group roleDiv" *ngIf="user">
+      <label>User Role:</label>
+      <div style="display: flex; align-items: center;">
+        <p *ngIf="!isEditing">{{user.role}}</p>
+
+        <select *ngIf="isEditing" [(ngModel)]="user_Role" class="role-dropdown">
+          <option value="Select Role" disabled selected>Select Role</option>
+          <option *ngFor="let r of roles" [value]="r">{{ r }}</option>
+        </select>
+        @if (Is_spinner) {
+        <button type="button" class="save_button">
+          <div class="spinner"></div>
+        </button>
+        }@else{
+        <button (click)="isEditing === false ? toggleEdit() : updateProfile()">
+          {{ isEditing ? 'Submit Request' : 'Edit Role' }}
+        </button>
+        }
+
+      </div>
+    </div>
+
+
+
+  </div>
+</div>

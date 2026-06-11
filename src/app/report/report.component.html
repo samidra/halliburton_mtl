@@ -1,7 +1,7 @@
 <div class="container-fluid">
-    <div class="row p-1">
+    <div class="row p-2">
         <div class="col-12 form border-right">
-            <h4>Search Filter</h4>
+            <h4>Chargeout Report</h4>
             <div class="d-flex border" style="display: flex; align-items: center;">
                 <div style="border: 1px solid rgb(53, 53, 53);">
                     <div class="form_field">
@@ -12,21 +12,25 @@
                         <button type="button" class="date_search" (click)="filterByDateRange()">
                             Search
                         </button>
+                        <button type="button" class="date_search" (click)="remove_filter()" *ngIf="showViewAll">
+                            View All
+                        </button>
                     </div>
                 </div>
-                <div style="display: flex; justify-content: space-between;width: 100%;">
+                <div style="display: flex; justify-content: flex-end;width: 100%;">
 
-
-                    <div class="form_field">
+                    <!-- <div class="form_field mx-1">
                         <label for="select_field">Select Filter Option: </label>
-                        <select name="" id="select_field" (change)="getfilterselectedOption($event)">
+                        <select name="filterSelect" id="select_field" [(ngModel)]="selectedFilterValue"
+                            (change)="getfilterselectedOption($event)">
+
                             <option value="Select Filter Option" selected>Select Filter Option</option>
                             <option *ngFor="let item of filterOptionList" [value]="item">
                                 {{item}}
                             </option>
                         </select>
                     </div>
- 
+
                     <div class="form_field" *ngIf="this.selectedFilterValue === 'Charge Code'">
                         <label for="chargeCode_search">Charge Code: </label>
                         <input type="text" id="chargeCode_search" [(ngModel)]="chargeCode_search"
@@ -35,8 +39,16 @@
 
                     <div class="form_field" *ngIf="this.selectedFilterValue === 'Resource'">
                         <label for="Resource_search">Resource: </label>
-                        <input type="text" id="Resource_search" [(ngModel)]="Resource_search"
-                            placeholder="Search by Resource" (ngModelChange)="filteredAutocomplete()">
+                        <div class="form_field_dropdown">
+                            <input id="resources" type="text" class="form-control" placeholder="Search by Resource"
+                                [(ngModel)]="Resource_search" (click)="show()" (ngModelChange)="filteredResourceList()"
+                                #inputField>
+                            <ul *ngIf="resourceList.length !=0" class="list_drop" #dropdownContainer>
+                                <li *ngFor="let option of resourceList" (click)="selectOption(option)">
+                                    {{option}}
+                                </li>
+                            </ul>
+                        </div>
                     </div>
 
                     <div class="form_field" *ngIf="this.selectedFilterValue === 'Tool'">
@@ -45,11 +57,11 @@
                             (ngModelChange)="filteredAutocomplete()">
                     </div>
 
-                    <!-- <div class="form_field" *ngIf="this.selectedFilterValue === 'PSL'">
+                    <div class="form_field" *ngIf="this.selectedFilterValue === 'PSL'">
                         <label for="psl_search">PSL: </label>
                         <input type="text" id="psl_search" [(ngModel)]="psl_search" placeholder="Search by PSL"
                             (ngModelChange)="filteredAutocomplete()">
-                    </div> -->
+                    </div>
 
                     <div class="form_field" *ngIf="this.selectedFilterValue === 'Group'">
                         <label for="group_search">Group: </label>
@@ -61,7 +73,7 @@
                         <button type="button" class="draft_button" (click)="remove_filter()">
                             View All
                         </button>
-                    </div>
+                    </div> -->
 
                     <div style="display: flex; justify-content:flex-end; padding: 3px;">
                         <button class="yesbtn"
@@ -71,8 +83,12 @@
 
                 </div>
             </div>
-
+            <span style="font-size: 0.73em; font-weight: 700; width: 100%; color: rgb(202, 27, 27);
+                display: flex; margin: 6px 0 ; padding-left: 5px;">
+                ***To see month wise report please select Start & End dates and press Search
+            </span>
         </div>
+
         <div class="col-12 col_table">
             <table class="table table-bordered table-hover table-responsive">
                 <thead class="table-light">
@@ -84,13 +100,39 @@
                         <th>Resource</th>
                         <th>Tools</th>
                         <th>Description</th>
-                        <th>Charge Code <br> Work Order</th>
+                        <th>Charge Code </th>
+                        <th>Work Order</th>
                         <th>Start Date</th>
                         <th>End Date</th>
                         <th>Per Hour Rate</th>
                         <th>Total Hours</th>
                         <th>Total Cost</th>
                         <th>Activity Code</th>
+                    </tr>
+
+                    <tr>
+                        <th><input type="text" style="width: 100%;" [(ngModel)]="filters.psl" (input)="applyFilters()">
+                        </th>
+                        <th><input type="text" style="width: 100%;" [(ngModel)]="filters.taskNumber"
+                                (input)="applyFilters()"></th>
+                        <th><input type="text" style="width: 100%;" [(ngModel)]="filters.group"
+                                (input)="applyFilters()"></th>
+                        <th><input type="text" style="width: 100%;" [(ngModel)]="filters.resource"
+                                (input)="applyFilters()"></th>
+                        <th><input type="text" style="width: 100%;" [(ngModel)]="filters.tool" (input)="applyFilters()">
+                        </th>
+                        <th><input type="text" style="width: 100%;" [(ngModel)]="filters.description"
+                                (input)="applyFilters()"></th>
+                        <th><input type="text" style="width: 100%;" [(ngModel)]="filters.charge_Code"
+                                (input)="applyFilters()"></th>
+                        <th></th>
+                        <th></th>
+                        <th></th>
+                        <th></th>
+                        <th></th>
+                        <th></th>
+                        <th><input type="text" style="width: 100%;" [(ngModel)]="filters.activity_Code"
+                                (input)="applyFilters()"></th>
                     </tr>
                 </thead>
 
@@ -113,8 +155,9 @@
                             <td>-</td>
                             <td>-</td>
                             <td>-</td>
+                            <td>-</td>
                             <td>{{psl.hour}}</td>
-                            <td>{{psl.cost}}</td>
+                            <td>{{user_role == 'Admin' ? psl.cost : '-'}}</td>
                             <td>-</td>
                         </tr>
 
@@ -124,7 +167,7 @@
                                     <tr class="expandable" (click)="toggleTask(pslIndex, tasks[0]?.taskNumber)"
                                         [ngStyle]="{'background-color': isTaskExpanded(pslIndex, tasks[0]?.taskNumber) ? '#c9ffc7' : '#eef5ed'}">
                                         <td style="background-color: white !important;"></td>
-                                        <td style="padding-left: 20px;">
+                                        <td style="padding-left: 14px;">
                                             <i class="bi"
                                                 [ngClass]="isTaskExpanded(pslIndex, tasks[0]?.taskNumber) ? 'bi-caret-down' : 'bi-caret-right'"
                                                 style="margin-right: 6px;"></i>
@@ -137,15 +180,16 @@
                                         <td>-</td>
                                         <td>-</td>
                                         <td>-</td>
-                                        <td>{{tasks[0]?.perHourRate}}</td>
+                                        <td>-</td>
+                                        <td>{{user_role == 'Admin' ? tasks[0]?.perHourRate : '-'}}</td>
                                         <td>{{group.hour}}</td>
-                                        <td>{{group.cost}}</td>
+                                        <td>{{user_role == 'Admin' ? group.cost : '-'}}</td>
                                         <td>-</td>
                                     </tr>
 
                                     <ng-container *ngIf="isTaskExpanded(pslIndex, tasks[0]?.taskNumber)">
                                         <tr *ngFor="let task of tasks">
-                                            <td></td>
+                                            <td> {{task.psl}}</td>
                                             <td>
                                                 <a (click)="routetoTaskInterface(tasks[0]?.taskNumber)"
                                                     style="color:rgb(3, 3, 212); font-weight: 700; font-size: 1.1em; cursor: pointer;">
@@ -156,12 +200,13 @@
                                             <td>{{task.resource}}</td>
                                             <td>{{task.tool}}</td>
                                             <td>{{task.description}}</td>
-                                            <td>{{task.charge_Code}}</td>
+                                            <td>{{task.charge_Code === '' ? '-' : task.charge_Code}}</td>
+                                            <td>{{task.work_Order === 'null' ? '-' : task.work_Order}}</td>
                                             <td>{{task.startDate?.split("T")[0]}}</td>
                                             <td>{{task.endDate?.split("T")[0]}}</td>
-                                            <td>{{task.perHourRate}}</td>
+                                            <td>{{user_role == 'Admin' ? task.perHourRate: '-'}}</td>
                                             <td>{{task.hour}}</td>
-                                            <td>{{task.cost}}</td>
+                                            <td>{{user_role == 'Admin' ? task.cost : '-'}}</td>
                                             <td>{{task.activity_Code}}</td>
                                         </tr>
                                     </ng-container>
@@ -175,11 +220,11 @@
                     <tr>
                         <td [attr.colspan]="13" class="text-end p-2">
                             Total: {{ totalRecords }} records across {{ totalPSLs }} PSLs |
-                            Grand Total: ${{ grandTotal | number:'1.0-0' }}
+                            Grand Total: ${{user_role == 'Admin' ? (grandTotal | number:'1.0-0') : '--' }}
                         </td>
                     </tr>
                 </tfoot>
-                
+
             </table>
         </div>
     </div>

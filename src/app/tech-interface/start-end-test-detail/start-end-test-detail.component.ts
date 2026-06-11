@@ -11,7 +11,8 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
   selector: 'app-start-end-test-detail',
   imports: [CommonModule, FormsModule],
   templateUrl: './start-end-test-detail.component.html',
-  styleUrl: './start-end-test-detail.component.scss'
+  styleUrl: './start-end-test-detail.component.scss',
+  standalone: true,
 })
 export class StartEndTestDetailComponent implements OnInit, OnDestroy {
 
@@ -33,7 +34,7 @@ export class StartEndTestDetailComponent implements OnInit, OnDestroy {
   test_id: any
   ngOnInit(): void {
 
-    this.titleService.setTitle(`Test ID ${this.test_id}: | Detail | MTL HALLIBURTON`);
+    this.titleService.setTitle(`Test ID ${this.test_id}: | Detail | TestTrack HALLIBURTON`);
     this.route.paramMap.subscribe((params) => {
       this.test_id = params.get('test_id')
     })

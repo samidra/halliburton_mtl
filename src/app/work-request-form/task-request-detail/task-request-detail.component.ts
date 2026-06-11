@@ -7,19 +7,35 @@ import { CommonModule, DatePipe } from '@angular/common';
 import { CommonServiceService } from '../../Services/common-service.service';
 import { AllApiServiceService } from '../../Services/all-api-service.service';
 import { LocalStorageService } from '../../Services/local-storage.service';
-import { Observable, Subscriber } from 'rxjs';
+import { Subscription } from 'rxjs';
 import Swal from 'sweetalert2';
 import { CdkDragPlaceholder } from "@angular/cdk/drag-drop";
+import { AuthService, User } from '../../Services/auth/auth.service';
 @Component({
   selector: 'app-task-request-detail',
   imports: [CommonModule, CdkDragPlaceholder],
   templateUrl: './task-request-detail.component.html',
-  styleUrl: './task-request-detail.component.scss'
+  styleUrl: './task-request-detail.component.scss',
+  standalone: true,
 })
 
 export class TaskRequestDetailComponent {
-
+  allstatus = ['Draft', 'Completed', 'Submitted', 'Approved', 'Approval Pending', 'Tentatively Approved', 'Cancelled']
+  readonly isValidForEdit = ['Submitted', 'Approved', 'Approval Pending', 'Tentatively Approved', 'Completed', 'In Progress', 'Paused'];
+  readonly isValidForchangeToDraft = ['Submitted', 'Approved', 'Approval Pending', 'Tentatively Approved',];
+  readonly isValidForCancel = ['Draft', 'Submitted', 'Approved', 'Approval Pending', 'Tentatively Approved',];
+  readonly isValidForcomplete_draft_request = ['Draft'];
+  readonly isValidForSubmitForApproval = ['Submitted'];
+  readonly isValidForClicktoApprove = ['Approval Pending', 'Tentatively Approved'];
+  approversList: any[] = []
+  readonly isRestrictedIfCompleted = ['Completed']
+  readonly heightAdjust = ['Submitted', 'Draft', 'Approval Pending', 'Tentatively Approved']
+  User: User | null | undefined | any;
+  private userSubscription: Subscription | undefined;
+  user_id: any;
+  userName: any;
   constructor(private titleService: Title,
+    private authService: AuthService,
     private route: ActivatedRoute,
     private router: Router,
     private apiservice: AllApiServiceService,
@@ -32,6 +48,15 @@ export class TaskRequestDetailComponent {
   task_number: any
   isLoading: boolean = true
   ngOnInit(): void {
+    this.userSubscription = this.authService.currentUser$.subscribe(user => {
+      this.User = user;
+      const input = this.User?.userName;
+      let parts: any = input?.split('\\');
+      if (parts && parts.length > 1) {
+        this.user_id = parts[1];
+        this.userName = this.user_id + ' - ' + this.User?.displayName
+      }
+    })
 
     // const taskData = sessionStorage.getItem('task_details_by_index');
     // this.task_details_by_index = JSON.parse(taskData);
@@ -43,18 +68,31 @@ export class TaskRequestDetailComponent {
       this.get_task_request_details()
 
     })
-    this.titleService.setTitle(`Task Request Detail ${this.task_number} | MTL HALLIBURTON`);
+    this.titleService.setTitle(`Task Request Detail ${this.task_number} | TestTrack HALLIBURTON`);
+  }
+
+  ngOnDestroy() {
+    this.userSubscription?.unsubscribe();
   }
 
   task_details: any
   private hasDisplayedMessage = false;
+  chargeCode_WorkOrder_list: any
   get_task_request_details() {
 
     this.apiservice.get_taskrequest_details(this.task_number).subscribe({
       next: (res) => {
-        console.log(res)
         if (res && Array.isArray(res) && res.length > 0) {
           this.task_details = res[0];
+          if (this.task_details?.approvers?.length) {
+            let uniqueApprovers = this.task_details?.approvers?.map((item: string) => item.trim())
+            this.approversList = [...uniqueApprovers]
+          }
+          if (this.task_details?.charge_Codes != '') {
+            this.chargeCode_WorkOrder_list = this.task_details?.charge_Codes.split(',')
+          } else if (this.task_details?.work_Orders != '') {
+            this.chargeCode_WorkOrder_list = this.task_details?.work_Orders.split(',')
+          }
           this.contacts = this.task_details.contacts
           this.log_entry_data = this.task_details.loglists
           this.upload_file_details = this.task_details.fileInfo
@@ -65,7 +103,7 @@ export class TaskRequestDetailComponent {
               this.common_service.displaySuccess("To schedule as per duration, click on Submit for Approval.");
             } else if (status === 'Draft') {
               this.common_service.displaySuccess("This request is not completed. To complete, click on 'Complete this request' button.");
-            } else if (status === 'Approval Pending') {
+            } else if (status === 'Approval Pending' && (this.User?.role === 'Admin' || this.User?.role === 'Lead' || this.User?.role === 'Tech')) {
               this.common_service.displaySuccess("To Approve , click on 'Click to approve' button.");
             }
             this.hasDisplayedMessage = true;
@@ -84,8 +122,18 @@ export class TaskRequestDetailComponent {
   }
 
   modify_details(request_task_action: any) {
+
+    const allowedRoles = ['Admin', 'User'];
+    if (!allowedRoles.includes(this.User?.role)) {
+      this.common_service.displayWarning(`You don't have permission to modify details, only Admin and User can do that.`);
+      return;
+    }
     const dialogRef = this.dialog.open(modify_details, {
-      data: { work_data: this.task_details, is_new: request_task_action },
+      data: {
+        user_id: this.user_id,
+        work_data: this.task_details,
+        is_new: request_task_action
+      },
       width: '600px',
       panelClass: 'custom-dialog-container',
       disableClose: true,
@@ -100,12 +148,17 @@ export class TaskRequestDetailComponent {
   }
 
   delete_Request(delete_type: any, name: any) {
+    const allowedRoles = ['Inventory'];
+    if (allowedRoles.includes(this.User?.role)) {
+      this.common_service.displayWarning(`You don't have permission to delete`);
+      return;
+    }
     const deleteRef = this.dialog.open(delete_request, {
       data: {
+        user_id: this.user_id,
         delete_type: delete_type,
         taskId: this.task_number,
         name: name,
-        // UserID: 'H317697'
       },
       width: '300px',
       panelClass: 'custom-dialog-container',
@@ -120,12 +173,32 @@ export class TaskRequestDetailComponent {
 
   reason_for_cancellng: any;
   taskStatusChanger(value: any) {
+    if (value === 'cancel') {
+      const allowedRoles = ['Admin', 'Tech'];
+      if (!allowedRoles.includes(this.User?.role)) {
+        this.common_service.displayWarning(`You don't have permission to cancel test, only Admin and Tech can do that.`);
+        return;
+      }
+    } else if (value === 'draft') {
+      const allowedRoles = ['Admin', 'Lead'];
+      if (!allowedRoles.includes(this.User?.role)) {
+        this.common_service.displayWarning(`You don't have permission to change to Draft, only Admin and Lead can do that.`);
+        return;
+      }
+    } else if (value === 'Approval Pending') {
+      const allowedRoles = ['Admin', 'Lead', 'Tech'];
+      if (!allowedRoles.includes(this.User?.role)) {
+        this.common_service.displayWarning(`You don't have permission, only Admin, Lead, and Tech can do that.`);
+        return;
+      }
+    }
+
     const dialogRef = this.dialog.open(cancel_change_to_draft, {
       data: {
+        user_id: this.user_id,
         value: value,
         word_id: this.request_number,
         taskId: this.task_number,
-        // UserID: 'H317697'
       },
       width: '300px',
       panelClass: 'custom-dialog-container',
@@ -136,13 +209,29 @@ export class TaskRequestDetailComponent {
       this.reason_for_cancellng = result
       this.get_task_request_details()
       window.scrollTo(0, 0)
+
+      if(result === 'submitted for approval') {
+        const data = {
+      selected_location: this.task_details.location,
+      selected_resource: this.task_details.resource,
+    };
+    
+    this.local_storage.setCalendarLocationCache(data);
+    this.router.navigate([`calendar`]);
+      }
     })
   }
 
   upload_file_details: any;
   upload_file() {
+    const allowedRoles = ['Inventory'];
+    if (allowedRoles.includes(this.User?.role)) {
+      this.common_service.displayWarning(`You don't have permission to add File`);
+      return;
+    }
     const dialogRef = this.dialog.open(upload_file, {
       data: {
+        user_id: this.user_id,
         taskId: this.task_number
       },
       width: '300px',
@@ -159,8 +248,14 @@ export class TaskRequestDetailComponent {
 
   upload_link: any
   add_link() {
+    const allowedRoles = ['Inventory'];
+    if (allowedRoles.includes(this.User?.role)) {
+      this.common_service.displayWarning(`You don't have permission to add Link`);
+      return;
+    }
     const dialogRef = this.dialog.open(add_link, {
       data: {
+        user_id: this.user_id,
         taskId: this.task_number
       },
       width: '300px',
@@ -177,8 +272,14 @@ export class TaskRequestDetailComponent {
 
   contacts: any
   add_contact() {
+    const allowedRoles = ['Inventory'];
+    if (allowedRoles.includes(this.User?.role)) {
+      this.common_service.displayWarning(`You don't have permission to add Contact`);
+      return;
+    }
     const dialogRef = this.dialog.open(add_contact, {
       data: {
+        user_id: this.user_id,
         taskId: this.task_number
       },
       width: '300px',
@@ -197,8 +298,15 @@ export class TaskRequestDetailComponent {
 
   log_entry_data: any
   add_log_entries() {
+    const allowedRoles = ['Admin', 'Lead', 'Tech'];
+    if (!allowedRoles.includes(this.User?.role)) {
+      this.common_service.displayWarning(`You don't have permission to add Log Entry, only Admin, Lead, and Tech can do that.`);
+      return;
+    }
     const dialogRef = this.dialog.open(add_log_entries, {
       data: {
+        user_id: this.user_id,
+        displayName: this.User?.displayName,
         workId: this.request_number,
         taskId: this.task_number
       },
@@ -216,7 +324,13 @@ export class TaskRequestDetailComponent {
   }
 
   submit_approval(item: any) {
+    const allowedRoles = ['Admin', 'User'];
+    if (!allowedRoles.includes(this.User?.role)) {
+      this.common_service.displayWarning(`You don't have permission to submit test for Approval, only Admin and User can do that.`);
+      return;
+    }
     const data = {
+      user_id: this.user_id,
       wRnumber: this.request_number,
       taskNumber: item.taskId,
       duration: item.daysRequested,
@@ -228,6 +342,11 @@ export class TaskRequestDetailComponent {
   }
 
   download_file(fileName: any) {
+    const allowedRoles = ['Inventory'];
+    if (allowedRoles.includes(this.User?.role)) {
+      this.common_service.displayWarning(`You don't have permission to Download File`);
+      return;
+    }
     this.isLoading = true
     this.apiservice.download_file(fileName).subscribe({
       next: (res: any) => {
@@ -251,6 +370,12 @@ export class TaskRequestDetailComponent {
     });
   }
 
+  dataCenterRoute() {
+    if (!this.task_details?.resource) return
+    const resource = this.task_details?.resource?.toLowerCase() || '';
+    const centerType = resource.includes('pressure') ? 'pressure-data-center' : 'data-center'
+    this.router.navigate([`/test/${centerType}/${this.task_number}`], { state: { resource: this.task_details?.resource } })
+  }
 
 }
 
@@ -260,250 +385,304 @@ export class TaskRequestDetailComponent {
   imports: [CommonModule, FormsModule, ReactiveFormsModule],
   template: `
   <div class="container-fluid common_dialog modify">
-    <div class="row">
-        <div class="col-12">
-            <h2>Modify Task Information</h2>
+  <div class="row">
+    <div class="col-12">
+      <h2>Modify Task Information</h2>
 
-            <form [formGroup]="modify_form" class="mt-2">
+      <form autocomplete="off" [formGroup]="modify_form" class="mt-2" >
 
-                <div class="form-group">
-                    <div class="form_field">
-                        <label>Work ID / Task ID:    </label>   
-                        <label style="color:grey;">{{task_data?.workId}} / {{task_data?.taskId}}</label> 
-                        
-                    </div>
-                </div>
+        <div class="form-group">
+          <div class="form_field">
+            <label>Work ID / Task ID: </label>
+            <label style="color:grey;">{{task_data?.workId}} / {{task_data?.taskId}}</label>
 
-                <div class="form-group">
-                    <div class="form_field">
-                        <label for="requestDescription">Description:</label>
-
-                        <input type="text" id="requestDescription" class="form-control" formControlName="description"
-                            placeholder="Description" />
-                    </div>
-                    <div *ngIf="modify_form.get('description')?.invalid && modify_form.get('description')?.touched"
-                        class="text-danger error">
-                        Description is required.
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <div class="form_field">
-                        <label for="location">Location: </label>
-                        <div class="form_field_dropdown" style="width: 100%;">
-                            <input id="location" type="text" class="form-control" placeholder="Search location"
-                                formControlName="location" (input)="input_location()" required (click)="show('location')" #inputField>
-                            <ul *ngIf="locationOptions.length !=0" class="list_drop" #dropdownContainer>
-                                <li *ngFor="let option of locationOptions" 
-                                (click)="option !== 'No data with this search' ? selectOption('location', option) : errorMessage('Location','location')">
-                                    {{option}}</li>
-                            </ul>
-                        </div>
-                    </div>
-                    <div *ngIf="modify_form.get('location')?.invalid && modify_form.get('location')?.touched"
-                        class="text-danger error">
-                        <div *ngIf="modify_form.get('location')?.hasError('required')">
-                            Location is required.
-                        </div>
-
-                        <div *ngIf="modify_form.get('location')?.hasError('noMatch')">
-                            Please select a valid location.
-                        </div>
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <div class="form_field">
-                        <label for="resources">Resources: </label>
-                        <div class="form_field_dropdown" style="width: 100%;">
-                            <input id="resources" type="text" class="form-control"
-                                placeholder="Search location wise resources" formControlName="resources"
-                                (click)="show('resources')" #inputField>
-                            <ul *ngIf="resourcesOptions?.length !=0" class="list_drop" #dropdownContainer>
-                                <li *ngFor="let option of resourcesOptions" 
-                                (click)="option !== 'No data with this search' ? selectOption('resources', option) : errorMessage('Resources','resources')">
-                                    {{option}}
-                                </li>
-                            </ul>
-                        </div>
-                    </div>
-                    <div *ngIf="modify_form.get('resources')?.invalid && modify_form.get('resources')?.touched"
-                        class="text-danger error">
-                        <div *ngIf="modify_form.get('resources')?.hasError('required')">
-                            Resources is required.
-                        </div>
-
-                        <div *ngIf="modify_form.get('resources')?.hasError('noMatch')">
-                            Please select a valid Resources.
-                        </div>
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <div class="form_field">
-                        <label for="duration">Duration (days):</label>
-
-                        <input type="number" id="duration" class="form-control" formControlName="duration"
-                            placeholder="Duration (days)" />
-                    </div>
-                    <div *ngIf="modify_form.get('duration')?.invalid && modify_form.get('duration')?.touched"
-                        class="text-danger error">
-                        Duration is required.
-                    </div>
-                </div>
-
-                <!-- Charge Code  or work Order Option-->
-                <div class="form-group">
-                    <div class="form_field">
-                        <label>Select Charge Code or Work Order: </label>
-                        <div class="border d-flex">
-                            <div>
-                                <label>
-                                    <input type="radio" class="mx-1" formControlName="Select_Charge_Code_or_Work_Order"
-                                        value="chargeCode"> Charge Code
-                                </label>
-                            </div>
-
-                            <div class="mx-4">
-                                <label>
-                                    <input type="radio" class="mx-1" formControlName="Select_Charge_Code_or_Work_Order"
-                                        value="workOrder"> Work Order
-                                </label>
-                            </div>
-                        </div>
-                    </div>
-                    <div *ngIf="modify_form.get('Select_Charge_Code_or_Work_Order')?.invalid && modify_form.get('Select_Charge_Code_or_Work_Order')?.touched"
-                        class="text-danger error">
-                        <div *ngIf="modify_form.get('Select_Charge_Code_or_Work_Order')?.hasError('required')">
-                            Please select either a Charge Code or a Work Order to proceed.
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Charge Code -->
-                <div class="form-group" *ngIf="modify_form.get('Select_Charge_Code_or_Work_Order')?.value === 'chargeCode'">
-                        <div class="form_field">
-                            <label for="chargeCode">Charge Code: </label>
-                            <div class="form_field_dropdown">
-                                <input id="chargeCode" type="text" class="form-control" placeholder="Search charge code"
-                                    style="margin-right: 10px;" formControlName="chargeCode"
-                                    (click)="show('chargeCode')" #inputField>
-                                <ul *ngIf="chargeCodeOptions.length !=0" class="list_drop" #dropdownContainer>
-                                    <li *ngFor="let option of chargeCodeOptions"
-                                        (click)="option !== 'No data with this search' ? selectOption('chargeCode', option) : errorMessage('Charge Code','chargeCode')">{{option}}</li>
-                                </ul>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="key-description col-2" *ngFor="let item of chargeCodeList" [title]="item">
-                                <i class="bi bi-x-circle-fill" (click)="removechargeCode(item)"></i>
-                                {{item.split('-')[0]}}
-                            </div>
-                        </div>
-                    </div>
-
-                <!-- Work Order -->
-                <div class="form-group"
-                    *ngIf="modify_form.get('Select_Charge_Code_or_Work_Order')?.value === 'workOrder'">
-                    <div class="form_field">
-                        <label for="workOrder">Work Order:</label>
-                        <div class="d-flex">
-                          <input type="text" id="workOrder" class="form-control" style="width: 350px !important; margin-right: 10px;"
-                            formControlName="workOrder" placeholder="Write your Work Order" />
-                        <button type="button" class="button" (click)="add_workOrder('workOrder')">Add More</button>
-                        </div>
-                    </div>
-
-                    <div class="row">
-                        <div class="key-description col-2" *ngFor="let item of workOrderList">
-                            <i class="bi bi-x-circle-fill" (click)="removeworkOrder(item)"></i>
-                            {{item}}
-                        </div>
-                    </div>
-                </div>
-
-                <!-- lithium_batteries -->
-                <div class="form-group">
-                    <div class="form_field">
-                        <label for="lithium_battery">Lithium Battery:</label>
-                        <div class="d-flex border">
-                            <div class="check_div">
-                                <input type="radio" id="yes" formControlName="lithium_batteries" [value]="true" />
-                                <label for="yes">Yes</label>
-                            </div>
-                            <div class="check_div">
-                                <input type="radio" id="no" formControlName="lithium_batteries" [value]="false" />
-                                <label for="no">No</label>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div *ngIf="modify_form.get('lithium_batteries')?.invalid &&
-                                modify_form.get('lithium_batteries')?.touched" class="text-danger error">
-                        Please select this field. It is required.
-                    </div>
-                </div>
-
-                <div class="form-group" *ngIf="modify_form.get('lithium_batteries')?.value === true">
-                    <div class="form_field">
-                        <label for="lithium_batteries_description">Lithium Battery Description:</label>
-
-                        <input type="text" id="lithium_batteries_description" class="form-control"
-                            formControlName="lithium_batteries_description"
-                            placeholder="Write description for Lithium Battery" />
-                    </div>
-                    <div *ngIf="modify_form.get('lithium_batteries_description')?.invalid && modify_form.get('lithium_batteries_description')?.touched"
-                        class="text-danger error">
-                        Lithium Battery Description is required.
-                    </div>
-                </div>
-
-                <!-- Radiation -->
-                <div class="form-group">
-                    <div class="form_field">
-                        <label>Radiation:</label>
-                        <div class="d-flex border">
-                            <div class="check_div">
-                                <input type="radio" id="radiation_yes" formControlName="Radiation" [value]="true" />
-                                <label for="radiation_yes">Yes</label>
-                            </div>
-                            <div class="check_div">
-                                <input type="radio" id="radiation_no" formControlName="Radiation" [value]="false" />
-                                <label for="radiation_no">No</label>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div *ngIf="modify_form.get('Radiation')?.invalid &&
-                            modify_form.get('Radiation')?.touched" class="text-danger error">
-                        Please select this field. It is required.
-                    </div>
-                </div>
-
-                <div class="form-group" *ngIf="modify_form.get('Radiation')?.value === true">
-                    <div class="form_field">
-                        <label for="Radiation_description">Radiation Description:</label>
-
-                        <input type="text" id="Radiation_description" class="form-control"
-                            formControlName="Radiation_description" placeholder="Write description for Radiation" />
-                    </div>
-                    <div *ngIf="modify_form.get('Radiation_description')?.invalid && modify_form.get('Radiation_description')?.touched"
-                        class="text-danger error">
-                        Radiation Description is required.
-                    </div>
-                </div>
-                <div class="btn_div" *ngIf="this.is_new != 'new'">
-                    <button type="button" class="yesbtn" *ngIf="!Is_spinner" (click)="modify_detail_submit()">Update</button>
-                    <button type="button" class="yesbtn" *ngIf="Is_spinner">
-                        <div class="spinner"></div>
-                    </button>
-                    <button type="button" (click)="close()">Cancel</button>
-                </div>
-            </form>
-
-
+          </div>
         </div>
+
+        <div class="form-group">
+          <div class="form_field">
+            <label for="requestDescription">Description:</label>
+
+            <input type="text" id="requestDescription" class="form-control" formControlName="description"
+              placeholder="Description" />
+          </div>
+          <div *ngIf="modify_form.get('description')?.invalid && modify_form.get('description')?.touched"
+            class="text-danger error">
+            Description is required.
+          </div>
+        </div>
+
+        <div class="form-group">
+          <div class="form_field">
+            <label for="location">Location: </label>
+            <div class="form_field_dropdown" style="width: 100%;">
+              <input id="location" type="text" class="form-control" placeholder="Search location"
+                formControlName="location" (input)="input_location()" required (click)="show('location')" #inputField>
+              <ul *ngIf="locationOptions.length !=0" class="list_drop" #dropdownContainer>
+                <li *ngFor="let option of locationOptions"
+                  (click)="option !== 'No data with this search' ? selectOption('location', option) : errorMessage('Location','location')">
+                  {{option}}</li>
+              </ul>
+            </div>
+          </div>
+          <div *ngIf="modify_form.get('location')?.invalid && modify_form.get('location')?.touched"
+            class="text-danger error">
+            <div *ngIf="modify_form.get('location')?.hasError('required')">
+              Location is required.
+            </div>
+
+            <div *ngIf="modify_form.get('location')?.hasError('noMatch')">
+              Please select a valid location.
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <div class="form_field">
+            <label for="resources">Resources: </label>
+            <div class="form_field_dropdown" style="width: 100%;">
+              <input id="resources" type="text" class="form-control" placeholder="Search location wise resources"
+                formControlName="resources" (click)="show('resources')" #inputField>
+              <ul *ngIf="resourcesOptions?.length !=0" class="list_drop" #dropdownContainer>
+                <li *ngFor="let option of resourcesOptions"
+                  (click)="option !== 'No data with this search' ? selectOption('resources', option) : errorMessage('Resources','resources')">
+                  {{option}}
+                </li>
+              </ul>
+            </div>
+          </div>
+          <div *ngIf="modify_form.get('resources')?.invalid && modify_form.get('resources')?.touched"
+            class="text-danger error">
+            <div *ngIf="modify_form.get('resources')?.hasError('required')">
+              Resources is required.
+            </div>
+
+            <div *ngIf="modify_form.get('resources')?.hasError('noMatch')">
+              Please select a valid Resources.
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <div class="form_field">
+            <label for="duration">Duration (days):</label>
+
+            <input type="number" id="duration" class="form-control" formControlName="duration"
+              placeholder="Duration (days)" />
+          </div>
+          <div *ngIf="modify_form.get('duration')?.invalid && modify_form.get('duration')?.touched"
+            class="text-danger error">
+            Duration is required.
+          </div>
+        </div>
+
+        <!-- Charge Code  or work Order Option-->
+        <div class="form-group">
+          <div class="form_field">
+            <label>Select Charge Code or Work Order: </label>
+            <div class="border d-flex">
+              <div>
+                <label>
+                  <input type="radio" class="mx-1" formControlName="Select_Charge_Code_or_Work_Order"
+                    value="chargeCode"> Charge Code
+                </label>
+              </div>
+
+              <div class="mx-4">
+                <label>
+                  <input type="radio" class="mx-1" formControlName="Select_Charge_Code_or_Work_Order" value="workOrder">
+                  Work Order
+                </label>
+              </div>
+            </div>
+          </div>
+          <div
+            *ngIf="modify_form.get('Select_Charge_Code_or_Work_Order')?.invalid && modify_form.get('Select_Charge_Code_or_Work_Order')?.touched"
+            class="text-danger error">
+            <div *ngIf="modify_form.get('Select_Charge_Code_or_Work_Order')?.hasError('required')">
+              Please select either a Charge Code or a Work Order to proceed.
+            </div>
+          </div>
+        </div>
+
+        <!-- Charge Code -->
+        <div class="form-group" *ngIf="modify_form.get('Select_Charge_Code_or_Work_Order')?.value === 'chargeCode'">
+          <div class="form_field">
+            <label for="chargeCode">Charge Code: </label>
+            <div class="form_field_dropdown">
+              <input id="chargeCode" type="text" class="form-control" placeholder="Search charge code"
+                style="margin-right: 10px;" formControlName="chargeCode" (click)="show('chargeCode')" #inputField>
+              <ul *ngIf="chargeCodeOptions.length !=0" class="list_drop" #dropdownContainer>
+                <li *ngFor="let item of chargeCodeList" class="selected-item">
+                  <input type="checkbox" checked (change)="toggleSelection(item)">
+                  <span class="label-text" (click)="removechargeCode(item)" [title]="item">
+                    {{ (item.length > 50) ? (item | slice:0:50) + '...' : item }}
+                  </span>
+                </li>
+
+                <ng-container *ngFor="let option of chargeCodeOptions">
+                  <li *ngIf="!chargeCodeList.includes(option)" (click)="toggleSelection(option)" class="selected-item">
+                    <input type="checkbox" [checked]="false" *ngIf="option !== 'No data with this search'">
+                    <span class="label-text" [title]="option">
+                      {{ (option.length > 50) ? (option | slice:0:50) + '...' : option }}
+                    </span>
+                  </li>
+                </ng-container>
+              </ul>
+              <!-- <ul *ngIf="chargeCodeOptions.length !=0" class="list_drop" #dropdownContainer>
+                                    <li *ngFor="let option of chargeCodeOptions"
+
+                                        (click)="option !== 'No data with this search' ? selectOption('chargeCode', option) : errorMessage('Charge Code','chargeCode')">{{option}}</li>
+                                </ul> -->
+            </div>
+          </div>
+          <div class="user_detail" *ngIf="chargeCodeList.length != 0">
+            <div class="detail_box">
+              <h5>
+                <span style="color: black; font-weight: 600;">View selected Charge
+                  Code
+                </span>
+                <i class="bi bi-chevron-double-down mx-2"></i>
+              </h5>
+              <div class="name">
+                <div class="key-descriptions" *ngFor="let item of chargeCodeList" [title]="item">
+                  <i class="bi bi-x-circle-fill" (click)="removechargeCode(item)"></i>
+                  <!-- {{item.split('-')[0]}} -->
+                  {{ (item.length > 40) ? (item | slice:0:40) + '...' : item }}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Activity Code -->
+        <div class="form-group" *ngIf="activityCodeShow">
+          <div class="form_field">
+            <label for="activityCode">Activity Code:</label>
+
+            <input type="text" id="activityCode" class="form-control" formControlName="activityCode"
+              placeholder="Enter Activity Code" />
+          </div>
+          <div *ngIf="modify_form.get('activityCode')?.invalid && modify_form.get('activityCode')?.touched"
+            class="text-danger error">
+            Activity Code is required.
+          </div>
+        </div>
+
+        <!-- Work Order -->
+        <div class="form-group" *ngIf="modify_form.get('Select_Charge_Code_or_Work_Order')?.value === 'workOrder'">
+          <div class="form_field">
+            <label for="workOrder">Work Order:</label>
+            <div class="d-flex">
+              <input type="text" id="workOrder" class="form-control"
+                style="width: 350px !important; margin-right: 10px;" formControlName="workOrder"
+                placeholder="Write your Work Order" />
+              <button type="button" class="button" (click)="add_workOrder('workOrder')">Add More</button>
+            </div>
+          </div>
+          <div class="user_detail" *ngIf="workOrderList.length != 0">
+            <div class="detail_box">
+              <h5>
+                <span style="color: black; font-weight: 600;">View selected Charge
+                  Code
+                </span>
+                <i class="bi bi-chevron-double-down mx-2"></i>
+              </h5>
+              <div class="name">
+                <div class="key-descriptions" *ngFor="let item of workOrderList" [title]="item">
+                  <i class="bi bi-x-circle-fill" (click)="removeworkOrder(item)"></i>
+                  <!-- {{item.split('-')[0]}} -->
+                  {{ (item.length > 40) ? (item | slice:0:40) + '...' : item }}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- lithium_batteries -->
+        <div class="form-group">
+          <div class="form_field">
+            <label for="lithium_battery">Lithium Battery:</label>
+            <div class="d-flex border">
+              <div class="check_div">
+                <input type="radio" id="yes" formControlName="lithium_batteries" [value]="true" />
+                <label for="yes">Yes</label>
+              </div>
+              <div class="check_div">
+                <input type="radio" id="no" formControlName="lithium_batteries" [value]="false" />
+                <label for="no">No</label>
+              </div>
+            </div>
+          </div>
+
+          <div *ngIf="modify_form.get('lithium_batteries')?.invalid &&
+                                modify_form.get('lithium_batteries')?.touched" class="text-danger error">
+            Please select this field. It is required.
+          </div>
+        </div>
+
+        <div class="form-group" *ngIf="modify_form.get('lithium_batteries')?.value === true">
+          <div class="form_field">
+            <label for="lithium_batteries_description">Lithium Battery Description:</label>
+
+            <input type="text" id="lithium_batteries_description" class="form-control"
+              formControlName="lithium_batteries_description" placeholder="Write description for Lithium Battery" />
+          </div>
+          <div
+            *ngIf="modify_form.get('lithium_batteries_description')?.invalid && modify_form.get('lithium_batteries_description')?.touched"
+            class="text-danger error">
+            Lithium Battery Description is required.
+          </div>
+        </div>
+
+        <!-- Radiation -->
+        <div class="form-group">
+          <div class="form_field">
+            <label>Radiation:</label>
+            <div class="d-flex border">
+              <div class="check_div">
+                <input type="radio" id="radiation_yes" formControlName="Radiation" [value]="true" />
+                <label for="radiation_yes">Yes</label>
+              </div>
+              <div class="check_div">
+                <input type="radio" id="radiation_no" formControlName="Radiation" [value]="false" />
+                <label for="radiation_no">No</label>
+              </div>
+            </div>
+          </div>
+
+          <div *ngIf="modify_form.get('Radiation')?.invalid &&
+                            modify_form.get('Radiation')?.touched" class="text-danger error">
+            Please select this field. It is required.
+          </div>
+        </div>
+
+        <div class="form-group" *ngIf="modify_form.get('Radiation')?.value === true">
+          <div class="form_field">
+            <label for="Radiation_description">Radiation Description:</label>
+
+            <input type="text" id="Radiation_description" class="form-control" formControlName="Radiation_description"
+              placeholder="Write description for Radiation" />
+          </div>
+          <div
+            *ngIf="modify_form.get('Radiation_description')?.invalid && modify_form.get('Radiation_description')?.touched"
+            class="text-danger error">
+            Radiation Description is required.
+          </div>
+        </div>
+
+        <div class="btn_div" *ngIf="this.is_new != 'new'">
+          <button type="button" class="yesbtn" *ngIf="!Is_spinner" (click)="modify_detail_submit()">Update</button>
+          <button type="button" class="yesbtn" *ngIf="Is_spinner">
+            <div class="spinner"></div>
+          </button>
+          <button type="button" (click)="close()">Cancel</button>
+        </div>
+      </form>
+
+
     </div>
+  </div>
 </div>
   `,
   styleUrl: './task-request-detail.component.scss'
@@ -518,6 +697,8 @@ export class modify_details {
   chargeCodeOptions: string[] = [];
   workOrderList: any = []
   chargeCodeList: any = []
+  user_id: any
+  activityCodeShow: boolean = false
   @ViewChild('dropdownContainer') dropdownContainer!: ElementRef;
   @ViewChild('inputField') inputField!: ElementRef;
   @HostListener('document:click', ['$event'])
@@ -537,15 +718,17 @@ export class modify_details {
     }
 
   }
+
   constructor(private fb: FormBuilder,
+    public local_storage: LocalStorageService,
+    public router: Router,
     private api_service: AllApiServiceService,
     public dialogRef: MatDialogRef<modify_details>,
     @Inject(MAT_DIALOG_DATA) public data: any,
     private common_service: CommonServiceService) {
+    this.user_id = data.user_id
     this.is_new = data.is_new
     this.task_data = data.work_data
-
-
   }
 
   modify_form !: FormGroup;
@@ -559,6 +742,7 @@ export class modify_details {
       Select_Charge_Code_or_Work_Order: ['', Validators.required],
       chargeCode: [''],
       workOrder: [''],
+      activityCode: [''],
       duration: ['', Validators.required],
       lithium_batteries: ['', Validators.required],
       Radiation: ['', Validators.required]
@@ -607,12 +791,41 @@ export class modify_details {
     if (this.task_data?.charge_Codes != '') {
       this.modify_form.get('Select_Charge_Code_or_Work_Order')?.setValue('chargeCode')
       this.chargeCodeList = this.task_data?.charge_Codes != '' ? this.task_data?.charge_Codes?.split(',') : []
+
+      if (this.chargeCodeList.some((item: string) => item?.trim().toUpperCase().startsWith('HT'))) {
+        this.modify_form.get('activityCode')?.setValue(this.task_data.activityCode)
+        this.activityCodeShow = true
+      }
     }
 
     if (this.task_data?.work_Orders != '') {
       this.modify_form.get('Select_Charge_Code_or_Work_Order')?.setValue('workOrder')
       this.workOrderList = this.task_data?.work_Orders != '' ? this.task_data?.work_Orders?.split(',') : []
     }
+
+    this.modify_form.get('Select_Charge_Code_or_Work_Order')?.valueChanges.subscribe((value) => {
+      if (value === 'workOrder') {
+        this.chargeCodeList = []
+        this.activityCodeShow = false
+        this.modify_form.get('activityCode')?.setValue('')
+        this.modify_form.get('activityCode')?.clearValidators()
+        this.modify_form.get('activityCode')?.markAsUntouched()
+        this.modify_form.get('activityCode')?.updateValueAndValidity()
+      } else {
+        this.workOrderList = []
+
+        if (this.task_data?.charge_Codes != '') {
+          this.modify_form.get('Select_Charge_Code_or_Work_Order')?.setValue('chargeCode')
+          this.chargeCodeList = this.task_data?.charge_Codes != '' ? this.task_data?.charge_Codes?.split(',') : []
+
+          if (this.chargeCodeList.some((item: string) => item?.trim().toUpperCase().startsWith('HT'))) {
+            this.modify_form.get('activityCode')?.setValue(this.task_data.activityCode)
+            this.activityCodeShow = true
+          }
+        }
+      }
+    })
+
     this.get_data_create_request();
   }
 
@@ -694,7 +907,10 @@ export class modify_details {
     if (optionsMap[dataKey]) {
       (this as any)[`${value}Options`] = this.allDataRes[0][optionsMap[dataKey]];
       if (optionsMap[dataKey] === 'locationWiseResources') {
-        (this as any)[`${value}Options`] = this.allDataRes[0][optionsMap[dataKey]][this.location_index]?.res;
+        const loc = this.modify_form.get('location')?.value.trim().toLowerCase()
+        this.location_index = this.allDataRes[0].locationWiseResources.findIndex((item: { loc: string; }) => item.loc.trim().toLowerCase() === loc)
+        const resourceArray = this.allDataRes[0][optionsMap[dataKey]];
+        (this as any)[`${value}Options`] = resourceArray[this.location_index]?.res || [];
       }
     }
 
@@ -703,7 +919,6 @@ export class modify_details {
       if (control) {
         control.valueChanges.subscribe(() => {
           // alert(`Value changed in control: ${controlName}`);
-
           control.updateValueAndValidity({ onlySelf: true, emitEvent: false });
         });
       }
@@ -728,6 +943,16 @@ export class modify_details {
       const selected = this.modify_form.get('chargeCode')?.value;
       if (!this.chargeCodeList.includes(selected)) {
         this.chargeCodeList.push(selected);
+        if (this.chargeCodeList.some((item: string) => item.startsWith('HT'))) {
+          this.activityCodeShow = true;
+          this.modify_form.get('activityCode')?.setValidators([Validators.required]);
+        } else {
+          this.activityCodeShow = false
+          this.modify_form.get('activityCode')?.setValue('')
+          this.modify_form.get('activityCode')?.clearValidators()
+          this.modify_form.get('activityCode')?.markAsUntouched()
+          this.modify_form.get('activityCode')?.updateValueAndValidity()
+        }
       } else {
         this.common_service.displayWarning('Charge Code already exists');
       }
@@ -792,10 +1017,45 @@ export class modify_details {
 
   }
 
+  toggleSelection(option: string) {
+    if (option === 'No data with this search') {
+      this.errorMessage('Charge Code', 'chargeCode')
+      return
+    };
+
+    const index = this.chargeCodeList.indexOf(option)
+    if (index > -1) {
+      this.chargeCodeList.splice(index, 1);
+    } else {
+      this.chargeCodeList.push(option);
+    }
+
+    const hasHTCode = this.chargeCodeList.some((item: String) => item.startsWith('HT'))
+    this.activityCodeShow = hasHTCode;
+
+    const activityCtrl = this.modify_form.get('activityCode');
+    if (hasHTCode) {
+      activityCtrl?.setValidators([Validators.required]);
+    } else {
+      activityCtrl?.clearValidators();
+    }
+    activityCtrl?.updateValueAndValidity();
+    this.modify_form.get('chargeCode')?.setValue('');
+  }
+
   removechargeCode(item: any) {
     const index = this.chargeCodeList.indexOf(item);
     if (index !== -1) {
       this.chargeCodeList.splice(index, 1);
+      if (this.chargeCodeList.some((item: string) => item.startsWith('HT'))) {
+        this.activityCodeShow = true;
+      } else {
+        this.activityCodeShow = false
+        this.modify_form.get('activityCode')?.setValue('')
+        this.modify_form.get('activityCode')?.clearValidators()
+        this.modify_form.get('activityCode')?.markAsUntouched()
+        this.modify_form.get('activityCode')?.updateValueAndValidity()
+      }
     }
   }
 
@@ -841,6 +1101,7 @@ export class modify_details {
         resource: this.modify_form.get('resources')?.value,
         charge_Code: '',
         charge_Codes: this.modify_form.get('Select_Charge_Code_or_Work_Order')?.value === 'chargeCode' ? this.chargeCodeList : [],
+        activityCode: this.modify_form.get('activityCode')?.value || '',
         work_Orders: this.modify_form.get('Select_Charge_Code_or_Work_Order')?.value != 'chargeCode' ? this.workOrderList : [],
         duration: Number(this.modify_form.get('duration')?.value),
         actionType: this.is_new === 'complete_draft_request' ? 'complete_draft_request' : 'Modify Test Details',
@@ -849,7 +1110,7 @@ export class modify_details {
         radiation: this.modify_form.get('Radiation')?.value === true ? true : false,
         radiationDescription: this.modify_form.get('Radiation_description')?.value,
         Reason: '',
-        userID: 'H317697',
+        userID: this.user_id,
       }
 
       this.api_service.modify_test_request(body).subscribe({
@@ -857,10 +1118,34 @@ export class modify_details {
         next: (res) => {
           this.submit_response = res
           if (this.submit_response.status) {
-            this.Is_spinner = false
-            this.common_service.displaySuccess('Modified Details Submitted Sucessfully')
-            this.dialogRef.close('submitted')
-            this.modify_form.reset()
+
+            if (this.modify_form.get('duration')?.value != this.task_data.daysRequested) {
+
+              this.Is_spinner = false
+              this.common_service.displaySuccess('Modified Details Submitted Sucessfully')
+              this.dialogRef.close('submitted')
+
+              const data = {
+                user_id: this.user_id,
+                wRnumber: this.modify_form.get('work_id')?.value,
+                taskNumber: this.modify_form.get('task_id')?.value,
+                duration: this.modify_form.get('duration')?.value,
+                location: this.modify_form.get('location')?.value,
+                resource: this.modify_form.get('resources')?.value,
+              };
+              this.local_storage.setDataFormCalender(data);
+              this.router.navigate([`calendar`, this.modify_form.get('work_id')?.value, this.modify_form.get('task_id')?.value],
+                {
+                  state: { message: 'Update' }
+                });
+              this.modify_form.reset()
+            } else {
+              this.Is_spinner = false
+              this.common_service.displaySuccess('Modified Details Submitted Sucessfully')
+              this.dialogRef.close('submitted')
+              this.modify_form.reset()
+            }
+
           } else {
             this.common_service.displayWarning('Request fail to modify task details. Please try again')
             this.Is_spinner = false
@@ -887,6 +1172,7 @@ export class modify_details {
   input_location() {
     this.modify_form.get('location')?.value.length === 0 ? this.resourcesOptions = [] : ''
   }
+
 }
 
 // cancel_change_to_draft 
@@ -899,7 +1185,7 @@ export class modify_details {
       <div class="col-12" *ngIf="task_action_type === 'cancel'">
         <h2>Test Cancellation</h2>
 
-        <form>
+        <form autocomplete="off">
           <h5 class="text-danger" style="font-size:0.75em">Test will be cancelled, continue?</h5>
         <label class="mt-2" for="reason">Reason for cancellng:</label>
         <textarea  [ngModelOptions]="{standalone: true}" [(ngModel)]="reason" placeholder="Reason for cancellng" rows="5" cols="40"></textarea>
@@ -917,7 +1203,7 @@ export class modify_details {
       <div class="col-12" *ngIf="task_action_type === 'draft'">
         <h2>Confirm Request to Draft</h2>
 
-        <form>
+        <form autocomplete="off">
           <h5 class="text-danger" style="font-size:0.75em">**Test will be cancelled from schedule, continue?</h5>
         <label class="mt-2" for="reason">Reason for change to Draft:</label>
         <textarea  [ngModelOptions]="{standalone: true}" [(ngModel)]="reason" placeholder="Reason for change to Draft" rows="5" cols="40"></textarea>
@@ -932,17 +1218,19 @@ export class modify_details {
       </div>
 
       <div class="col-12" *ngIf="task_action_type === 'Approval Pending'">
-        <h2>Please Confirm Approval For Task Request <strong style="color:green;">{{taskId}}</strong> </h2>
-        <form>
-          <textarea  [ngModelOptions]="{standalone: true}" [(ngModel)]="reason" placeholder="Comment" rows="5" cols="40"></textarea>
+        <h2 style="font-size: 0.8em;">Please click 'Yes' to approve the task request <strong style="color:green;">{{taskId}}</strong> </h2>
+        <form autocomplete="off">
+          <!-- <textarea  [ngModelOptions]="{standalone: true}" [(ngModel)]="reason" placeholder="Comment" rows="5" cols="40">
+
+          </textarea> -->
         <div class="btn_div"> 
-        <button class="btn btn-warning me-2" type="button" (click)="approve_task('Tentative')"  *ngIf="!Is_spinner">Tentative</button>
-        <button class="btn btn-primary me-2" type="button" (click)="approve_task('Approved')"  *ngIf="!Is_spinner">Approve</button>
-        <button class="yesbtn" type="button" (click)="approve_task('Reject')"  *ngIf="!Is_spinner">Reject</button>
-        <button class="yesbtn" *ngIf="Is_spinner">
+        <!-- <button class="btn btn-warning me-2" type="button" (click)="approve_task('Tentative')"  *ngIf="!Is_spinner">Tentative</button> -->
+        <button class="yesbtn me-2" type="button" style="width:60px;" (click)="approve_task('Approved')"  *ngIf="!Is_spinner">Yes</button>
+        <!-- <button class="yesbtn" type="button" (click)="approve_task('Reject')"  *ngIf="!Is_spinner">Reject</button> -->
+        <button class="yesbtn"  *ngIf="Is_spinner">
             <div class="spinner"></div>
         </button>
-        <button type="button" (click)="close()">Close</button>
+        <button type="button" style="width:60px;" (click)="close()">No</button>
         </div>
         </form>
       </div>
@@ -958,10 +1246,12 @@ export class cancel_change_to_draft {
   task_action_type: any
   word_id: any
   taskId: any
+  user_id: any
   constructor(public dialogRef: MatDialogRef<cancel_change_to_draft>,
     private api_service: AllApiServiceService,
     private common_service: CommonServiceService,
     @Inject(MAT_DIALOG_DATA) public data: any) {
+    this.user_id = data.user_id;
     this.task_action_type = data.value;
     this.word_id = data.word_id;
     this.taskId = data.taskId;
@@ -975,7 +1265,7 @@ export class cancel_change_to_draft {
     if (this.reason != "") {
       this.Is_spinner = true
       const body = {
-        UserID: 'H317697',
+        UserID: this.user_id,
         workId: this.word_id,
         taskId: this.taskId,
         description: '',
@@ -1016,7 +1306,7 @@ export class cancel_change_to_draft {
     if (this.reason != "") {
       this.Is_spinner = true
       const body = {
-        UserID: 'H317697',
+        UserID: this.user_id,
         workId: this.word_id,
         taskId: this.taskId,
         description: '',
@@ -1055,40 +1345,71 @@ export class cancel_change_to_draft {
 
   approve_task(approval_type: any) {
 
-    if (this.reason != "") {
-      this.Is_spinner = true
-      const body = {
-        UserID: 'H317697',
-        workId: this.word_id,
-        taskId: this.taskId,
-        actionType: approval_type,
-        Reason: this.reason
-      }
-
-      this.api_service.modify_test_request(body).subscribe({
-
-        next: (res) => {
-
-          this.submit_response = res
-          if (this.submit_response.status) {
-            this.Is_spinner = false
-            this.common_service.displaySuccess('Submitted Sucessfully')
-            this.dialogRef.close('submitted')
-            this.reason != ""
-          } else {
-            this.Is_spinner = false
-            this.common_service.displayWarning('Request failed. Please try again later')
-          }
-        },
-        error: (err) => {
-          this.Is_spinner = false;
-          console.error('API error:', err);
-          this.common_service.displayWarning('Request failed. Please try again later');
-        },
-      })
-    } else {
-      this.common_service.displayWarning('Please provide a Reason before submitting.');
+    this.Is_spinner = true
+    const body = {
+      UserID: this.user_id,
+      workId: this.word_id,
+      taskId: this.taskId,
+      actionType: approval_type,
+      Reason: this.reason
     }
+
+    this.api_service.modify_test_request(body).subscribe({
+
+      next: (res) => {
+
+        this.submit_response = res
+        if (this.submit_response.status) {
+          this.Is_spinner = false
+          this.common_service.displaySuccess('Submitted Sucessfully')
+          this.dialogRef.close('submitted for approval')
+          this.reason != ""
+        } else {
+          this.Is_spinner = false
+          this.common_service.displayWarning('Request failed. Please try again later')
+        }
+      },
+      error: (err) => {
+        this.Is_spinner = false;
+        console.error('API error:', err);
+        this.common_service.displayWarning('Request failed. Please try again later');
+      },
+    })
+
+    // if (this.reason != "") {
+    //   this.Is_spinner = true
+    //   const body = {
+    //     UserID: this.user_id,
+    //     workId: this.word_id,
+    //     taskId: this.taskId,
+    //     actionType: approval_type,
+    //     Reason: this.reason
+    //   }
+
+    //   this.api_service.modify_test_request(body).subscribe({
+
+    //     next: (res) => {
+
+    //       this.submit_response = res
+    //       if (this.submit_response.status) {
+    //         this.Is_spinner = false
+    //         this.common_service.displaySuccess('Submitted Sucessfully')
+    //         this.dialogRef.close('submitted')
+    //         this.reason != ""
+    //       } else {
+    //         this.Is_spinner = false
+    //         this.common_service.displayWarning('Request failed. Please try again later')
+    //       }
+    //     },
+    //     error: (err) => {
+    //       this.Is_spinner = false;
+    //       console.error('API error:', err);
+    //       this.common_service.displayWarning('Request failed. Please try again later');
+    //     },
+    //   })
+    // } else {
+    //   this.common_service.displayWarning('Please provide a Reason before submitting.');
+    // }
   }
 
   close() {
@@ -1107,7 +1428,7 @@ export class cancel_change_to_draft {
       <div class="col-12">
         <h2>Add File to Task</h2>
 
-        <form>
+        <form autocomplete="off">
         <label for="upload">Upload File:</label>
         <input type="file" id="upload" (change)="onFileChange($event)" />
 
@@ -1130,11 +1451,12 @@ export class cancel_change_to_draft {
 
 export class upload_file {
   taskId: any;
-
+  user_id: any;
   constructor(public dialogRef: MatDialogRef<upload_file>,
     @Inject(MAT_DIALOG_DATA) public data: any,
     private apiservice: AllApiServiceService,
     private common_service: CommonServiceService) {
+    this.user_id = data.user_id;
     this.taskId = data.taskId;
   }
 
@@ -1158,10 +1480,9 @@ export class upload_file {
     reader.readAsDataURL(file);
     reader.onload = () => {
       this.fileBase64 = reader.result as string;
-      console.log('File ready for upload:', this.fileBase64);
 
       const formData = {
-        UserID: 'H317697',
+        UserID: this.user_id,
         TaskID: this.taskId,
         FileName: this.file.name,
         file: this.fileBase64,
@@ -1173,7 +1494,6 @@ export class upload_file {
         next: (res) => {
           this.checkfile = res
           if (this.checkfile.responseMessage.includes("A file with the same name already exists")) {
-            console.log("Swal fired");
             Swal.fire({
               title: 'File Already Exists',
               text: this.checkfile.responseMessage,
@@ -1182,7 +1502,6 @@ export class upload_file {
               confirmButtonText: 'Yes, Continue',
               cancelButtonText: 'No, Cancel'
             }).then(result => {
-              console.log("Swal result:", result);
               if (result.isConfirmed) {
                 this.associate = true;
               } else {
@@ -1191,21 +1510,8 @@ export class upload_file {
                 const fileInput = document.getElementById('fileInput') as HTMLInputElement;
                 if (fileInput) fileInput.value = '';
               }
-              console.log("associate after Swal:", this.associate);
             });
           }
-
-          // if (this.checkfile.responseMessage === "A file with the same name already exists on the server.Do you still want to associate this file to current Task ?") {
-          //   const userConfirmed = confirm(this.checkfile.responseMessage);
-          //   console.log(userConfirmed)
-          //   if (userConfirmed) {
-          //     this.associate = true;
-          //   } else {
-          //     this.file = null as any;
-          //     this.fileBase64 = '';
-          //     this.associate = false;
-          //   }
-          // }
         },
         error: (err) => {
           this.Is_spinner = false;
@@ -1237,7 +1543,7 @@ export class upload_file {
     this.Is_spinner = true;
 
     const formData = {
-      UserID: 'H317697',
+      UserID: this.user_id,
       TaskID: this.taskId,
       FileName: this.file.name,
       file: this.fileBase64,
@@ -1264,7 +1570,6 @@ export class upload_file {
     });
   }
 
-
   close() {
     this.dialogRef.close()
   }
@@ -1281,7 +1586,7 @@ export class upload_file {
       <div class="col-12">
         <h2>Add Link to Task</h2>
 
-        <form>
+        <form autocomplete="off">
         <label for="link">Add Link:</label>
         <input type="text" id="link" [ngModelOptions]="{standalone: true}" [(ngModel)]="link"/>
         
@@ -1304,10 +1609,12 @@ export class upload_file {
 
 export class add_link {
 
+  user_id: any
   constructor(public dialogRef: MatDialogRef<add_link>,
     private apiservice: AllApiServiceService,
     @Inject(MAT_DIALOG_DATA) public data: any,
     private common_service: CommonServiceService) {
+    this.user_id = data.user_id;
     this.taskId = data.taskId;
   }
 
@@ -1318,7 +1625,7 @@ export class add_link {
   add_link() {
     if (this.link != "" && this.description != "") {
       const body = {
-        userID: "H317697",
+        userID: this.user_id,
         taskID: this.taskId,
         link: this.link,
         description: this.description
@@ -1362,7 +1669,7 @@ export class add_link {
       <div class="col-12">
         <h2>Add Contact to Task</h2>
 
-        <form>
+        <form autocomplete="off">
         <label for="contact">Select Contact:</label>
         <select id="contact" (change)="selected_value($event)" style="width:270px !important">
       <option value="">Select a contact</option>
@@ -1470,7 +1777,7 @@ export class add_contact {
       <div class="col-12">
         <h2>Add Entry to Log</h2>
 
-        <form>
+        <form autocomplete="off">
         <label for="time">Time:</label>
         <input type="datetime-local" id="time" (change)="onDateChange($event)">
         <!-- <input type="text" id="link" [ngModelOptions]="{standalone: true}" [(ngModel)]="link"/> -->
@@ -1496,11 +1803,15 @@ export class add_contact {
 export class add_log_entries {
   taskId: any
   workId: any
+  user_id: any
+  displayName: any
   constructor(public dialogRef: MatDialogRef<add_log_entries>,
     private datePipe: DatePipe,
     private apiservice: AllApiServiceService,
     private common_service: CommonServiceService,
     @Inject(MAT_DIALOG_DATA) public data: any) {
+    this.user_id = data.user_id;
+    this.displayName = data.displayName;
     this.workId = data.workId
     this.taskId = data.taskId
   }
@@ -1509,7 +1820,6 @@ export class add_log_entries {
   description: string = ''
   onDateChange(event: any): void {
     const date = new Date(event.target.value);
-    // const formatted_date = this.datePipe.transform(date, 'h:mm a MM/dd/yyyy')!;
     this.date = date
   }
 
@@ -1523,8 +1833,8 @@ export class add_log_entries {
         taskNumber: this.taskId,
         timestamp: this.date,
         comment: this.description,
-        userID: "H317697",
-        userName: "Sameer Akhter"
+        userID: this.user_id,
+        userName: this.displayName
       }
 
       this.apiservice.addlog_taskDetail(body).subscribe({
@@ -1556,7 +1866,6 @@ export class add_log_entries {
 
 }
 
-
 // Delete
 
 @Component({
@@ -1567,7 +1876,7 @@ export class add_log_entries {
     <div class="row">
       <div class="col-12">
         <h2>Delete Confirmation</h2>
-        <form>
+        <form autocomplete="off">
         <label>Are you sure you want to delete {{delete_type}}: <strong>{{name}}</strong>? <br> This action cannot be undone.</label>
         <div class="btn_div">
         <button class="yesbtn" (click)="delete_Request()" *ngIf="!Is_spinner">Yes, Delete</button>
@@ -1588,11 +1897,13 @@ export class delete_request {
   delete_type: any
   name: any
   taskId: any
+  user_id: any
   constructor(public dialogRef: MatDialogRef<delete_request>,
     private apiservice: AllApiServiceService,
     private common_service: CommonServiceService,
     @Inject(MAT_DIALOG_DATA) public data: any) {
     this.delete_type = data.delete_type
+    this.user_id = data.user_id;
     this.name = data.name
     this.taskId = data.taskId
   }
@@ -1605,9 +1916,9 @@ export class delete_request {
 
   Is_spinner: boolean = false;
   delete_Request() {
-      this.delete_type === 'Contact' ? this.delete_contact() : 
-      this.delete_type === 'File' ? this.delete_file() : 
-      this.delete_type === 'Link' ? this.delete_link() : '';
+    this.delete_type === 'Contact' ? this.delete_contact() :
+      this.delete_type === 'File' ? this.delete_file() :
+        this.delete_type === 'Link' ? this.delete_link() : '';
   }
 
   delete_contact() {
@@ -1631,8 +1942,9 @@ export class delete_request {
   delete_file() {
     this.Is_spinner = true;
     const body = {
-      "taskID": this.taskId,
-      "fileName": this.name
+      userID: this.user_id,
+      taskID: this.taskId,
+      fileName: this.name
     }
     this.apiservice.delete_file_task(body).subscribe({
       next: (res) => {
@@ -1649,8 +1961,9 @@ export class delete_request {
   delete_link() {
     this.Is_spinner = true;
     const body = {
-      "taskID": this.taskId,
-      "link": this.name
+      userID: this.user_id,
+      taskID: this.taskId,
+      link: this.name
     }
     this.apiservice.delete_link_task(body).subscribe({
       next: (res) => {

@@ -1,0 +1,68 @@
+<div class="container-fluid">
+<div class="row" style=" width: 100%;">
+        <div class="col-12 btn_div">
+            <button class="yesbtn" (click)="downloadFile()">Download User Manual 📥</button>
+        </div>
+    </div>
+    <div class="row rowWell">
+        <div class="mb-3 col-md-3"></div>
+        <div class="mb-3 col-md-6">
+            <div class="search-wrapper">
+                <input id="search" type="text" [(ngModel)]="searchWorkTaskReq" (click)="show()"
+                    (ngModelChange)="filteredAutocomplete()" #inputField placeholder="Search by Work ID/Task ID"
+                    class="form-control searchField" autocomplete="off">
+                <i class="bi bi-search search-icon"></i>
+            </div>
+
+            <ul *ngIf="workTaskList?.length !=0 && showDropdown" class="list_drop" #dropdownContainer>
+                <li *ngFor="let option of this.workTaskList" (click)="navigateToDetail(option)">
+                    {{option}}
+                </li>
+            </ul>
+
+        </div>
+        <div class="mb-3 col-md-3"></div>
+        <div class="col-md-4 wellcol">
+            <div class="well3" (click)="scrollToElement('create-work-request')">
+                <h4>Create Work Request</h4>
+                <i class="bi bi-pencil-square"></i>
+            </div>
+        </div>
+        <div class="col-md-4 wellcol">
+            <div class="well3" (click)="scrollToElement('work-request')">
+                <h4>Work Request Info</h4>
+                <i class="bi bi-ui-checks"></i>
+            </div>
+        </div>
+
+        <div class="col-md-4 wellcol">
+            <div class="well3" (click)="scrollToElement('calendar')">
+                <h4>View Schedule</h4>
+                <i class="bi bi-calendar-event-fill"></i>
+            </div>
+        </div>
+        <div class="col-md-4 wellcol">
+            <div class="well3" (click)="scrollToElement('tech-interface')">
+                <h4>View Test Info</h4>
+                <i class="bi bi-ui-checks"></i>
+            </div>
+        </div>
+        <div class="col-md-4 wellcol">
+            <div class="well3" (click)="scrollToElement('current-user-detail')">
+                <h4>View Profile</h4>
+                <i class="bi bi-person-circle"></i>
+            </div>
+        </div>
+        <div class="col-md-4 wellcol">
+            <div class="well3" (click)="scrollToElement('help-center')">
+                <h4>Help</h4>
+                <i class="bi bi-info-circle-fill"></i>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<div class="loader" *ngIf="isLoading">
+    <div class="spinner"></div>
+</div>

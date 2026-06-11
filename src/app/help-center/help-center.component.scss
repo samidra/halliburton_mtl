@@ -1,0 +1,92 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.container-fluid {
+  position: relative;
+
+  &::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: url('../../assets/image.png');
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: bottom;
+    filter: blur(1px) brightness(70%);
+    z-index: -1;
+  }
+}
+
+.col-5 {
+  margin: 0 auto;
+  padding: 10px;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+h2 {
+  text-align: center;
+  font-size: 1.5em;
+  border-bottom: 1px dashed #ccc;
+  padding-bottom: 10px;
+  margin-bottom: 5px;
+}
+
+.form-group {
+  margin-bottom: 8px;
+}
+
+label {
+  font-weight: 600;
+  font-size: 0.9em;
+  margin-bottom: 5px;
+  display: inline-block;
+}
+
+input.form-control,
+textarea.form-control {
+  width: 100%;
+  padding: 4px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box;
+  font-size: 0.75em;
+  font-weight: 500;
+}
+
+textarea.form-control {
+  resize: vertical;
+  font-weight: 700;
+  height: 100px;
+  color: rgb(32, 128, 207);
+}
+
+.save_button {
+  padding: 10px 0;
+  font-weight: 600;
+  letter-spacing: 1px;
+  width: 100%;
+  background-color: rgb(216, 17, 17);
+  color: white;
+  text-shadow: none;
+  border: none;
+  box-shadow: rgba(50, 50, 93, 0.25) 0px 2px 5px -1px,
+    rgba(0, 0, 0, 0.3) 0px 1px 3px -1px;
+
+  &:hover {
+    background-color: rgb(148, 12, 12);
+  }
+}
+
+.text-danger {
+  font-size: 0.7em;
+  font-weight: 600;
+  text-align: end;
+}

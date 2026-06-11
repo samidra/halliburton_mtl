@@ -28,7 +28,7 @@
 .selected_th {
   width: 100% !important;
   display: flex !important;
-  height: 71px !important;
+  height: 58px !important;
   align-items: center !important;
 }
 
@@ -188,9 +188,11 @@ h4 {
 
       tbody {
         display: block;
-        height: 150px;
+        max-height: 150px;
+        height: fit-content;
         overflow-y: auto;
         width: 100%;
+        scrollbar-gutter: stable; 
       }
 
       
@@ -214,10 +216,11 @@ h4 {
         }
       }
 
-
-       thead{
-        width: 98.99%;
-       }
+thead {
+  display: table;
+  width: calc(100% - 0.5em); /* Adjust 1em based on browser scrollbar width */
+  table-layout: fixed;
+}
     }
   }
 }
@@ -375,4 +378,118 @@ h4 {
 ::ng-deep .swal2-popup {
   font-size: 0.8em !important;
   font-weight: 600 !important;
+}
+
+
+.testTable{
+
+  tr{
+    th{
+      width: 22.5% !important;
+    }
+  }
+}
+
+.selected-item {
+  display: flex !important;
+  align-items: flex-start !important;
+
+  input[type="checkbox"] {
+    // margin-right: 5px !important;
+    // margin-top: 2px !important;
+  }
+
+  span{
+    font-size: 0.86em;
+    margin: 0 !important;
+  }
+}
+
+.user_detail {
+  display: flex;
+  align-items: center;
+  width: 86.5%;
+  padding-top: 7px;
+
+  .detail_box {
+    position: relative;
+    transition: max-height 0.6s ease-in;
+    transition: width 0.6s ease-out;
+    background-color: rgb(255, 255, 255);
+    color: rgb(29, 28, 28);
+    border: 1px solid rgb(143, 143, 143);
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+
+    h5 {
+      font-size: 1em;
+      font-weight: 500;
+      color: rgb(190, 4, 4);
+      margin: 0;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 3px 0 !important;
+      span{
+        margin: 0 !important;
+        padding-left: 3px !important;
+      }
+
+      i{
+        font-size: 0.8em !important;
+      }
+    }
+
+    .name {
+      display: none;
+    }
+
+    &:hover {
+  
+      .name {
+        border: 1px solid rgb(100, 3, 3);
+        background-color: white;
+        width: 360px;
+        height: max-content;
+        max-height: 200px;
+        overflow: scroll;
+        overflow-x: hidden;
+        position: absolute;
+        top: 24px;
+        z-index: 1;
+        display: flex;
+        flex-direction: column;
+        padding: 5px
+      }
+    }
+  }
+}
+
+.scrolling-text {
+  width: 100%;
+  overflow: hidden;
+  position: relative;
+}
+
+.scrolling-text span {
+  display: inline-block;
+  white-space: nowrap;
+  animation: scroll-text 10s linear infinite alternate;
+  will-change: transform;
+}
+
+@keyframes scroll-text {
+  0% {
+    transform: translateX(90%);
+  }
+
+  100% {
+    transform: translateX(-5vw);
+  }
+}
+
+.scrolling-text span:hover {
+  animation-play-state: paused;
 }

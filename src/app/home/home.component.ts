@@ -23,7 +23,7 @@ export class HomeComponent {
   months: { month: string, days: number[] }[] = [];
   
   ngOnInit(): void {
-    const title = "Home | MTL HALLIBURTON";   
+    const title = "Home | TestTrack HALLIBURTON";   
     this.titleService.setTitle(title);
     this.new_work_request = this.fb.group({
       resources: [''],

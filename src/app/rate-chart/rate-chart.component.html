@@ -38,7 +38,8 @@
         <tbody>
           <tr *ngFor="let Item of filteredItems| paginate: { itemsPerPage, currentPage: page } ; let i = index">
             <td class="months">
-              <div>{{ Item.resource }}</div>
+              {{Item.resource}}
+              <!-- <div [title]="Item.resource">{{ (Item.resource.length > 33) ? (Item.resource | slice:0:33) + '...' : Item.resource }} </div> -->
             </td>
             <td *ngFor="let month of monthsNames; let j = index" [ngClass]="{
                'highlighted': Item.highlightedMonths && Item.highlightedMonths[month]}">

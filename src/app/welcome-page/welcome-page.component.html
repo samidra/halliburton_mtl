@@ -1,0 +1,27 @@
+<div class="unauthorized-container" mat-dialog-content>
+  <div class="card" style="display: flex; justify-content: center; align-items: center;">
+    <img src="assets/5578628.png" srcset="" height="140px" width="140px">
+    <h1>Halliburton | TestTrack</h1>
+    <table class="table table-bordered">
+      <tr>
+          <th colspan="3" class="tableHead">User Details</th>
+        </tr>
+        <tr>
+          <th>User Name:</th>
+          <td>{{this.User?.displayName}}</td>
+        </tr>
+        <tr>
+          <th>User Role:</th>
+          <td>{{this.User?.role}}</td>
+        </tr>
+      </table>
+    <p>We're excited to have you with us. Let's get you set up and ready to explore all the great features we offer! </p>
+    <div class="btn_div">
+      <button class="yesbtn" (click)="route_to_home()" *ngIf="!Is_spinner">Get Started</button>
+      <button class="yesbtn" *ngIf="Is_spinner" style="display: flex; justify-content: center;
+       align-items: center;">
+        <div class="spinner"></div>
+      </button>
+    </div>
+  </div>
+</div>

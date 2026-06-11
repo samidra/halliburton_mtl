@@ -17,6 +17,23 @@
   font-weight: 700 !important;
 }
 
+.toggle_div{
+  width: 100%;
+  margin-top: 10px;
+  display: flex;
+
+  input{
+    width: 30px; 
+    height: 15px;
+  }
+
+  label{
+    font-size: 0.85em;
+    font-weight: 600;
+    margin-left: 5px;
+  }
+}
+
 table {
   thead {
 
@@ -65,4 +82,11 @@ table {
 }
 
 
+.common_dialog {
+  form {
+    .form_field {
+      position: relative !important;
+    }
+  }
 
+}

@@ -27,8 +27,13 @@ interface ScheduleEntry {
 })
 export class AllApiServiceService {
 
-  url: any = 'http://azscusinve001:5092/api/v1'
-  url_two: any = 'http://azscusinve001:5092/api/'
+  // Production URL
+  url: any = 'http://azscusmtlt001:5092/api/v1'
+  url_two: any = 'http://azscusmtlt001:5092/api/'
+
+  // Development URL
+  // url: any = 'http://azscusinve001:5092/api/v1'
+  // url_two: any = 'http://azscusinve001:5092/api/'
   constructor(private https: HttpClient) { }
 
   // Create Request, All Calendar Api, Get, Modify, Create Task All Api
@@ -51,6 +56,29 @@ export class AllApiServiceService {
     return this.https.post(`${this.url}/workRequest/POST/WR_Submit`, body, httpOptions)
 
   }
+
+
+  update_user_profile(body: any) {
+    let httpOptions = {
+      headers: new HttpHeaders({ 'Content-Type': 'application/json' }),
+      withCredentials: true
+    };
+    return this.https.post(`${this.url}/Home/POST/ReqRoleChange`, body, httpOptions)
+  }
+
+  search_workrequest_taskrequest() {
+    return this.https.get(`${this.url}/Home/GET/SearchWorkTask`, { withCredentials: true })
+  }
+
+
+  helpCenter(body: any) {
+    let httpOptions = {
+      headers: new HttpHeaders({ 'Content-Type': 'application/json' }),
+      withCredentials: true
+    };
+    return this.https.post(`${this.url}/Home/POST/HelpCenter`, body, httpOptions)
+  }
+
 
   draft_new_work_request(body: any) {
     let httpOptions = {
@@ -154,6 +182,35 @@ export class AllApiServiceService {
     return this.https.post(`${this.url}/Calendar/POST/AddToSchedule`, body, httpOptions)
   }
 
+  shutDown_Resource(body: any) {
+
+    let httpOptions = {
+      headers: new HttpHeaders({ 'Content-Type': 'application/json' }),
+      withCredentials: true
+    };
+
+    return this.https.post(`${this.url}/Calendar/POST/AddShutdown`, body, httpOptions)
+  }
+
+  removeShutdown_Resource(body: any) {
+
+    let httpOptions = {
+      headers: new HttpHeaders({ 'Content-Type': 'application/json' }),
+      withCredentials: true
+    };
+
+    return this.https.post(`${this.url}/Calendar/POST/RemoveShutDown`, body, httpOptions)
+  }
+
+  change_schedule_request(body: any) {
+    let httpOptions = {
+      headers: new HttpHeaders({ 'Content-Type': 'application/json' }),
+      withCredentials: true
+    };
+
+    return this.https.post(`${this.url}/Calendar/POST/ChangeResource`, body, httpOptions)
+  }
+
   drag_reschedule_request(body: any) {
 
     let httpOptions = {
@@ -213,8 +270,8 @@ export class AllApiServiceService {
       }
     );
   }
-  
-  
+
+
   // Tech Interface
 
   get_all_task_request() {
@@ -239,6 +296,14 @@ export class AllApiServiceService {
       withCredentials: true
     };
     return this.https.post(`${this.url}/TechInterface/POST/EndTest`, body, httpOptions)
+  }
+
+  tech_interface_completeTest(body: any) {
+    let httpOptions = {
+      headers: new HttpHeaders({ 'Content-Type': 'application/json' }),
+      withCredentials: true
+    };
+    return this.https.post(`${this.url}/TechInterface/POST/CompleteTest`, body, httpOptions)
   }
 
   tech_interface_editTest(body: any) {
@@ -277,6 +342,14 @@ export class AllApiServiceService {
 
   Get_Charge_Out() {
     return this.https.get(`${this.url}/Reports/GET/GetChargeOut`, { withCredentials: true })
+  }
+
+  Get_Charge_OutbyYear(Year: any) {
+    return this.https.get(`${this.url}/Reports/GET/GetChargeOut?year=${Year}`, { withCredentials: true })
+  }
+
+  Get_Charge_OutbyStartDate_EndDate(StartDate: any, EndDate: any) {
+    return this.https.get(`${this.url}/Reports/GET/GetChargeOut?startDate=${StartDate}&endDate=${EndDate}`, { withCredentials: true })
   }
 
   // Rate Chart API 
@@ -480,5 +553,36 @@ export class AllApiServiceService {
     return this.https.get(`${this.url}/User/${User_id}`, { withCredentials: true })
   }
 
+  get_dataChannelNonPressure(task_id: any) {
+    return this.https.get(`${this.url}/ChartData/GET/DataChannels?taskID=${task_id}`, { withCredentials: true })
+  }
+
+  get_dataChannelPressure(task_id: any) {
+    return this.https.get(`${this.url}/ChartData/GET/PressureChannels?taskID=${task_id}`, { withCredentials: true })
+  }
+
+  get_PressureGraphData(body: any) {
+    let httpOptions = {
+      headers: new HttpHeaders({ 'Content-Type': 'application/json' }),
+      withCredentials: true
+    };
+    return this.https.post(`${this.url}/ChartData/GET/PressureData`, body, httpOptions)
+  }
+
+  get_GraphData(body: any) {
+    let httpOptions = {
+      headers: new HttpHeaders({ 'Content-Type': 'application/json' }),
+      withCredentials: true
+    };
+    return this.https.post(`${this.url}/ChartData/GET/Data`, body, httpOptions)
+  }
+
+  testProcedureToggle(body: any) {
+    let httpOptions = {
+      headers: new HttpHeaders({ 'Content-Type': 'application/json' }),
+      withCredentials: true
+    };
+    return this.https.post(`${this.url}/Resource/TestProcedure`, body, httpOptions)
+  }
 }
 

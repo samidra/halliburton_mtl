@@ -27,6 +27,11 @@ input:focus {
   box-shadow: none !important;
 }
 
+textarea:focus {
+  outline: 0px !important;
+  box-shadow: none !important;
+}
+
 select:focus {
   outline: 0px !important;
   box-shadow: none !important;
@@ -77,19 +82,21 @@ input[type="number"] {
 
   &.error-snackbar {
     z-index: 11000 !important;
-    --mdc-snackbar-container-color: #bd2b2b;
-    --mat-mdc-snack-bar-button-color: #fff;
-    --mdc-snackbar-supporting-text-color: #fff;
+    --mdc-snackbar-container-color: #FFCC00;
+    --mat-mdc-snack-bar-button-color: #000000;
+    --mdc-snackbar-supporting-text-color: #000000;
     font-family: Montserrat !important;
     text-align: center;
     width: fit-content;
   }
+
+   &.error-snackbarTwo {
+  z-index: 11000 !important;
+  --mdc-snackbar-container-color: #8b1f03;
+  padding: 5px !important;
 }
 
-.mat-mdc-snack-bar-container {
-  z-index: 11000 !important;
-
-  &.successOtp-snackbar {
+&.successOtp-snackbar {
     z-index: 11000 !important;
     --mdc-snackbar-container-color: #c0e7f7;
     --mat-mdc-snack-bar-button-color: #fff;
@@ -97,19 +104,12 @@ input[type="number"] {
     font-family: Montserrat !important;
     text-align: center !important;
   }
-}
 
-.mat-mdc-snack-bar-container {
+&.success-snackbar {
   z-index: 11000 !important;
-
-  &.SuccessLoginSucess-snackbar {
-    z-index: 11000 !important;
-    --mdc-snackbar-container-color: #1b916d;
-    --mat-mdc-snack-bar-button-color: #fff;
-    --mdc-snackbar-supporting-text-color: #fff;
-    font-family: Montserrat !important;
-    text-align: center !important;
-  }
+  --mdc-snackbar-container-color: #038717;
+  padding: 5px !important;
+}
 }
 
 // Common scss for Module 
@@ -204,6 +204,9 @@ input[type="number"] {
         color: white;
         background-color: rgb(216, 17, 17);
         margin-right: 9px;
+         &:hover {
+          background-color: rgb(150, 12, 12) !important;
+        }
       }
     }
   }
@@ -327,6 +330,7 @@ input[type="number"] {
 .key-description {
   box-shadow: 0 1px 5px 0 rgba(0, 0, 0, 0.15);
   display: flex;
+
   // justify-content: center;
   align-items: flex-start;
   margin-top: 7px !important;
@@ -336,6 +340,26 @@ input[type="number"] {
   font-weight: 600 !important;
   width: max-content;
 
+  i {
+    padding-right: 3px !important;
+    cursor: pointer;
+
+    &:hover {
+      color: rgb(214, 4, 4);
+    }
+  }
+}
+
+.key-descriptions {
+  box-shadow: 0 1px 5px 0 rgba(0, 0, 0, 0.15);
+  display: flex;
+  align-items: flex-start;
+  padding: 5px !important;
+  font-size: 0.77em !important;
+  font-weight: 600 !important;
+  width: max-content !important;
+  margin: 5px 0 !important;
+  border: 1px dotted rgb(187, 4, 4);
   i {
     padding-right: 3px !important;
     cursor: pointer;
@@ -362,7 +386,7 @@ input[type="number"] {
       font-weight: 600;
     }
 
-    .btn_div {
+    .btn_div {      
       margin: 10px 0;
       display: flex;
       justify-content: flex-end;
@@ -382,7 +406,7 @@ input[type="number"] {
         margin-right: 9px;
 
         &:hover {
-          background-color: rgb(179, 14, 14);
+          background-color: rgb(150, 12, 12) !important;
         }
       }
     }
@@ -551,6 +575,9 @@ input[type="number"] {
         color: white;
         background-color: rgb(216, 17, 17);
         margin-right: 9px;
+         &:hover {
+          background-color: rgb(150, 12, 12) !important;
+        }
       }
     }
   }
@@ -563,3 +590,5 @@ input[type="number"] {
   }
 
 }
+html, body { height: 100%; }
+body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }

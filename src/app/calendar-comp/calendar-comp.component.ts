@@ -102,7 +102,7 @@ export class CalendarCompComponent {
     private commonservice: CommonServiceService) { }
 
   ngOnInit(): void {
-    this.titleService.setTitle('Calendar | MTL HALLIBURTON');
+    this.titleService.setTitle('Calendar | TestTrack HALLIBURTON');
     this.route.params.subscribe(params => {
       const wRnumber = params['wRnumber'];
       const taskNumber = params['taskNumber'];

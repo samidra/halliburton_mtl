@@ -1,0 +1,45 @@
+@import url(../get-access/get-access.component.scss);
+
+::ng-deep .cdk-overlay-backdrop-showing {
+  background-image: url('../../assets/dashboard_BG.png') !important;
+  -webkit-filter: blur(2px) brightness(50%) !important;
+  filter: blur(2px) brightness(50%) !important;
+}
+
+.table-bordered {
+  font-family: Arial, sans-serif;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  width: 70%;
+  margin: 20px 0;
+
+  .tableHead{
+    font-size: 0.9em;
+    letter-spacing: 1px;
+  text-align: center;
+  background-color: rgb(209, 5, 5);
+  font-weight: 600;
+  color: white;
+}
+}
+
+.table-bordered th,
+.table-bordered td {
+  font-size: 0.8em;
+  border: 1px solid #ddd;
+  padding: 5px;
+  text-align: left;
+}
+
+.table-bordered th {
+  background-color: #f4f4f4;
+  width: 40px;
+}
+
+.table-bordered td {
+  font-weight: 500;
+  width: 100px;
+}
+
+.tableHead{
+  text-align: center;
+}

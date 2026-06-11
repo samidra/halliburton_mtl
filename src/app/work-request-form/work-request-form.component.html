@@ -121,8 +121,8 @@
                         <td><a (click)="get_task_details(request.request_Number,request.task_Number)">{{ request.task_Number }}</a></td>
                         <td>{{ request.psl }}</td>
                         <td>{{ request.group }}</td>
-                        <td style="font-weight: 700;" [ngStyle]="{'color':  request?.status === 'Submitted' ? 'green' : 
-                            request?.status === 'Draft' ? '#c79c04' : ''}">
+                        <td style="font-weight: 700;" [ngStyle]="{'color':  request?.status === 'Submitted' ? 'blue' : 
+                            request?.status === 'Draft' ? '#c79c04' : request?.status === 'Cancelled' ? 'red' : request?.status === 'Approved' ? 'green' : ''}">
                             {{ request.status }}
                         </td>
                     </tr>

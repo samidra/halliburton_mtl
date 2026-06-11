@@ -1,7 +1,6 @@
 <div class="container-fluid">
-bnmbm
     <div class="row option_filter">
-        <div class="col-6 p-1 d-flex border">
+        <div class="col-md-6 p-1 d-flex border">
             <div class="form_field">
                 <label for="Location">Location: </label>
                 <div class="form_field_dropdown" style="width: 100%;">
@@ -11,7 +10,7 @@ bnmbm
                     <ul *ngIf="locationOptions.length !=0 && showlistlocationOptions" class="list_drop"
                         #dropdownContainer>
                         <li *ngFor="let option of locationOptions"
-                        (click)="option !== 'No data with this search' ? filterData('location',option) : errorMessage('Location')">
+                            (click)="option !== 'No data with this search' ? filterData('location',option) : errorMessage('Location')">
                             {{option}}
                         </li>
                     </ul>
@@ -26,23 +25,23 @@ bnmbm
                     <ul *ngIf="resourcesOptions.length !=0 && showlistresourcesOptions" class="list_drop"
                         #dropdownContainer>
                         <li *ngFor="let option of resourcesOptions"
-                        (click)="option !== 'No data with this search' ? filterData('resource',option) : errorMessage('Resource')">
+                            (click)="option !== 'No data with this search' ? filterData('resource',option) : errorMessage('Resource')">
                             {{option}}
                         </li>
                     </ul>
                     <ul *ngIf="resourcesOptions.length ===0 && showlistresourcesOptions" class="list_drop"
                         #dropdownContainer>
-                        <li (click)="errorMessage('Resource')" >
+                        <li (click)="errorMessage('Resource')">
                             Please Select Location First
                         </li>
                     </ul>
                 </div>
             </div>
-            <div class="form_field " style="justify-content: flex-end; width: fit-content; border: none;">
+            <!-- <div class="form_field " style="justify-content: flex-end; width: fit-content; border: none;">
                 <button class="button" (click)="view_all()">View All</button>
-            </div>
+            </div> -->
         </div>
-        <div class="col-6 legends">
+        <div class="col-md-6 legends">
 
             <div class="sub_legends">
                 <div
@@ -78,10 +77,18 @@ bnmbm
             </div>
             <div class="sub_legends">
                 <div class="clrdiv"
-                    style="box-shadow: rgba(0, 0, 0, 0.24) -1px 2px 8px; height: 17px; width: 17px; background-color: #d90000; margin-right: 2px;">
+                    style="box-shadow: rgba(0, 0, 0, 0.24) -1px 2px 8px; height: 17px; width: 17px; background-color: rgba(250, 90, 90, 0.447)  ;border: 2px dashed rgb(125, 11, 11) !important; margin-right: 2px;">
                 </div>
                 Facility shutdown
             </div>
+        </div>
+        <div class="col-12 p-2 border" style="display: flex; justify-content: flex-end; border: none;"
+            *ngIf="isAddShutdown && (User.role === 'Admin' || approversList.includes(userName))">
+            <button class="button" (click)="shutDown_Resource('Shutdown')">Add Shutdown</button>
+        </div>
+        <div class="col-12 p-2 border" style="display: flex; justify-content: flex-end; border: none;"
+            *ngIf="isRemoveShutdown && (User.role === 'Admin' || approversList.includes(userName))">
+            <button class="button" (click)="shutDown_Resource('Remove Shutdown')">Remove Shutdown</button>
         </div>
     </div>
 
@@ -91,7 +98,8 @@ bnmbm
                 <div class='demo-app-main'>
                     <full-calendar *ngIf='calendarVisible()' #fullCalendar [options]='calendarOptions()'>
                         <ng-template #eventContent let-arg>
-                            <i [title]="'Task Detail:' + arg.event.title">{{ arg.event.title }}</i>
+                            <i style="cursor: pointer !important;" [title]="'Task Detail:' + arg.event.title">{{
+                                arg.event.title }}</i>
                         </ng-template>
                     </full-calendar>
                 </div>
@@ -104,3 +112,4 @@ bnmbm
 <div class="loader" *ngIf="isLoading">
     <div class="spinner"></div>
 </div>
+

@@ -10,7 +10,7 @@
             request_details?.status === 'Draft' ? '#c79c04' : ''}">
               {{request_details?.status}}
             </span>
-            ) | <a (click)="modify_work_request_details()"> [Edit Details]</a> 
+            ) | <a (click)="modify_work_request_details()"> [Edit Details]</a>
             <hr class="mt-1">
           </h3>
         </div>
@@ -37,7 +37,7 @@
               <th>Charge Code/Work Order:</th>
               <td>{{request_details?.networkNumber}}</td>
             </tr> -->
-            
+
             <tr>
               <th>Tools:</th>
               <td>{{request_details?.toolDescr}}</td>
@@ -72,7 +72,7 @@
 
         <div class="btn_div">
           <h4 class="pt-1">Task List</h4>
-          <button class="yesbtn" type="button" (click)="modify_details('new')">Add Task</button>
+          <button class="yesbtn" type="button" (click)="add_task('new')">Add Task</button>
         </div>
         <table class="table table-bordered mt-1">
           <thead>
@@ -119,3 +119,4 @@
 <div class="loader" *ngIf="isLoading">
   <div class="spinner"></div>
 </div>
+

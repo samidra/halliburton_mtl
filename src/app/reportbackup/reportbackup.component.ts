@@ -44,6 +44,7 @@ interface Row {
   imports: [CommonModule, ReactiveFormsModule, FormsModule],
   templateUrl: './reportbackup.component.html',
   styleUrl: './reportbackup.component.scss',
+  standalone: true,
   providers: [DatePipe]
 })
 export class ReportbackupComponent {
@@ -633,7 +634,7 @@ export class ReportbackupComponent {
     private api_service: AllApiServiceService,
     private ngZone: NgZone,
     private datePipe: DatePipe) {
-    this.titleService.setTitle("Report | MTL HALLIBURTON");
+    this.titleService.setTitle("Report | TestTrack HALLIBURTON");
 
     const today = new Date();
     this.currentYear = today.getFullYear();

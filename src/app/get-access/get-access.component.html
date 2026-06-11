@@ -1,0 +1,14 @@
+<div class="unauthorized-container" mat-dialog-content>
+  <div class="card">
+    <h1>{{ data.heading }}</h1>
+    <p>{{ data.message }}</p>
+    <span>{{data.message_two}}</span>
+    <div class="btn_div" *ngIf="data.message != 'Current User is waiting for Approval'">
+      <button class="yesbtn" (click)="request_access()" *ngIf="!Is_spinner">Request Access</button>
+      <button class="yesbtn" *ngIf="Is_spinner" style="display: flex; justify-content: center;
+       align-items: center;">
+        <div class="spinner"></div>
+      </button>
+    </div>
+  </div>
+</div>

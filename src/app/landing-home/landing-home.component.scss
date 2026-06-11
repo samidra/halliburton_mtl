@@ -1,0 +1,151 @@
+.container-fluid {
+  position: relative;
+  height: 80vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+}
+
+.container-fluid::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: url('../../assets/image.png');
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: bottom;
+  filter: blur(1px) brightness(70%);
+  z-index: -1;
+}
+
+.row {
+  padding: 10px;
+
+  .wellcol {
+    display: flex;
+    justify-content: center;
+    padding: 4px;
+    margin: 19px 0;
+  }
+
+  .well3 {
+    background-color: white;
+    width: 90%;
+    height: max-content;
+    padding: 7px;
+    border-radius: 5px;
+    box-shadow: rgba(0, 0, 0, 0.16) 0px 3px 6px, rgba(0, 0, 0, 0.23) 0px 3px 6px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    outline: solid 0px white;
+    transition: outline 0.3s linear;
+
+    h4 {
+      font-size: 1em;
+      font-weight: 600;
+      margin: 0;
+      padding: 0;
+
+    }
+
+    i {
+      color: rgb(204, 19, 19);
+      font-size: 1.3em;
+    }
+
+    &:hover {
+      cursor: pointer;
+      transform: scale(1.04);
+      background-color: rgb(216, 17, 17);
+      color: white !important;
+      //  outline-width: 2px;
+
+      i,
+      span {
+        color: white !important;
+      }
+    }
+  }
+
+  .search-wrapper {
+    position: relative;
+    width: 100%;
+
+    .searchField {
+      width: 100%;
+      padding-left: 35px;
+      border-radius: 0;
+      font-size: 0.875em;
+      font-weight: 600;
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #888;
+      pointer-events: none;
+    }
+  }
+
+  .list_drop {
+    position: absolute;
+    background: white;
+    box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
+    z-index: 2;
+    border: 1px solid rgb(209, 208, 208);
+    list-style: none;
+    height: min-content;
+    max-height: 250px;
+    width: 400px;
+    overflow-y: scroll;
+    overflow-x: hidden;
+    padding: 3px 0;
+
+    li {
+      font-size: 0.75em;
+      padding: 5px;
+      font-weight: 500;
+
+      &:hover {
+        background-color: rgb(231, 231, 231);
+        cursor: pointer;
+      }
+    }
+  }
+}
+
+.btn_div {
+  width: 100%;
+  margin: 10px 0;
+  display: flex;
+  justify-content: flex-end;
+  padding: 0;
+  margin-top: -80px;
+  button {
+    height: 40px;
+    border: none;
+    box-shadow: 0 3px 1px -2px #0003, 0 2px 2px #00000024, 0 1px 5px #0000001f;
+    font-weight: 500;
+    font-size: 0.85em;
+    letter-spacing: 1px;
+    padding: 4px 6px !important;
+    border-radius: 2px;
+  }
+
+  .yesbtn {
+    color: white;
+    background-color: rgb(216, 17, 17);
+
+    &:hover {
+      background-color: rgb(150, 12, 12) !important;
+    }
+  }
+}

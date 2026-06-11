@@ -6,12 +6,15 @@ import { MAT_DIALOG_DATA, MatDialog, MatDialogRef } from "@angular/material/dial
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { AllApiServiceService } from '../Services/all-api-service.service';
 import { CommonServiceService } from '../Services/common-service.service';
+import { AuthService, User } from '../Services/auth/auth.service';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-all-cost-center-add-update',
   imports: [CommonModule, FormsModule, NgxPaginationModule],
   templateUrl: './all-cost-center-add-update.component.html',
-  styleUrl: './all-cost-center-add-update.component.scss'
+  styleUrl: './all-cost-center-add-update.component.scss',
+  standalone: true,
 })
 export class AllCostCenterAddUpdateComponent {
 
@@ -19,11 +22,23 @@ export class AllCostCenterAddUpdateComponent {
   itemsPerPage: number = 25;
   private pollingInterval: any = null;
   searchText: any;
+   User: User | null | undefined;
+  private userSubscription !: Subscription;
+  user_id: any;
   constructor(private titleService: Title,
+    private authService: AuthService,
     private api_service: AllApiServiceService,
     private ngZone: NgZone,
     public dialog: MatDialog) {
-    this.titleService.setTitle('Add/Update All Cost Center | MTL HALLIBURTON');
+      this.userSubscription = this.authService.currentUser$.subscribe(user => {
+      this.User = user;
+      const input = this.User?.userName;
+      let parts: any = input?.split('\\');
+      if (parts && parts.length > 1) {
+        this.user_id = parts[1];
+      }
+    })
+    this.titleService.setTitle('Add/Update All Cost Center | TestTrack');
   }
 
   ngOnInit(): void {
@@ -43,6 +58,7 @@ export class AllCostCenterAddUpdateComponent {
   }
 
   ngOnDestroy(): void {
+    this.userSubscription?.unsubscribe();
     if (this.pollingInterval) {
       clearInterval(this.pollingInterval)
       this.pollingInterval = null
@@ -84,6 +100,7 @@ export class AllCostCenterAddUpdateComponent {
 
     const dialogRef = this.dialog.open(cost_center, {
       data: { action_type: action_type, 
+        user_id: this.user_id,
         costCenterDetails: action_type === 'Update Cost Center' ? costCenterDetails : '' },
       width: '500px',
       panelClass: 'custom-dialog-container'
@@ -120,7 +137,7 @@ export class AllCostCenterAddUpdateComponent {
         <div class="col-12 p-1">
             <h2>Network Number Information</h2>
 
-            <form [formGroup]="cost_center" (ngSubmit)="onSubmit()">
+            <form autocomplete="off" [formGroup]="cost_center" (ngSubmit)="onSubmit()">
 
                 <div class="form-group mt-1">
                     <div class="form_field">
@@ -192,7 +209,7 @@ export class cost_center {
   cost_center !: FormGroup
   cost_centerDetail: any
   networkNumberID = 0
-
+  user_id: any 
   constructor(private fb: FormBuilder,
     @Inject(MAT_DIALOG_DATA) public data: any,
     private api_service: AllApiServiceService,
@@ -207,6 +224,7 @@ export class cost_center {
     });
 
     this.action_type = data.action_type
+    this.user_id =  data.user_id
     if (this.action_type === 'Update Cost Center') {
       this.cost_centerDetail = data?.costCenterDetails
       this.networkNumberID = this.cost_centerDetail?.networkNumberID,
@@ -229,7 +247,7 @@ export class cost_center {
         "description": this.cost_center.get('discription')?.value,
         "availableForUse": this.cost_center.get('available_for_use')?.value,
         "projectCostNumber": this.cost_center.get('project_cost_number')?.value,
-        "userID": "H317697"
+        "userID": this.user_id
       }
       if (this.action_type != 'Update Cost Center') {
         this.Add_new_CostCenter(body);
@@ -289,7 +307,7 @@ export class cost_center {
       <div class="col-12">
         <h2>Delete Cost Center Confirmation</h2>
 
-        <form>
+        <form autocomplete="off">
         <label>Are you sure you want to delete tool: <strong>{{costCenter_name}}</strong>? <br> This action cannot be undone.</label>
         <div class="btn_div">
         <button class="yesbtn" (click)="delete_costCenter()" *ngIf="!Is_spinner">Yes, Delete</button>

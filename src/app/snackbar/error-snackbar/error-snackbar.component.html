@@ -1,0 +1,8 @@
+<div class="snackbar-container">
+  <!-- <div class="snackbar-title">Following fields are required:</div> -->
+   <!-- <img src="../../../assets/errorImage.png" alt="" srcset=""> -->
+  <ul class="snackbar-list" [innerHTML]="data.message"></ul>
+  <div style="display: flex; justify-content: flex-end; width: 100%; padding: 5px;">
+    <button class="close-btn" (click)="close()">Close ✕</button>
+  </div>
+</div>

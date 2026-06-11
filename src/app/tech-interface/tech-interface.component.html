@@ -9,20 +9,37 @@
                         placeholder="Search by Task number, or Any Relevant Information">
                 </div>
                 <div style="width: 50%; " class="bttn_div" *ngIf="selectedRequests.length">
-                    <button class="start_btn" (click)="test_execution('start')"
-                        *ngIf="selectedRequests[0].status === 'Approved' || selectedRequests[0].status === 'Completed'">
-                        Start Activity
+
+                    <button class="start_btn" (click)="test_execution('start')" *ngIf="selectedRequests[0].status === 'Approved' 
+                    || selectedRequests[0].status === 'Completed'
+                        || selectedRequests[0].status === 'Paused'">
+                        @if(selectedRequests[0].status === 'Paused'){
+                        Resume Test
+                        }@else {
+                        Start Test
+                        }
                     </button>
-                    <!-- <button class="start_btn" (click)="test_execution('edit')"
-                        *ngIf="selectedRequests[0].status === 'Completed'">Edit Activity</button>
-                    
-                        <button class="start_btn" (click)="test_execution('end')"
-                        *ngIf="selectedRequests[0].status === 'In Progress'">End Activity</button> -->
+
+                    <!-- <button class="start_btn" (click)="test_execution('Pause')"
+                        *ngIf="selectedRequestsActivity.length && 
+                        selectedRequestsActivity[0].requested_EndDate === null">
+                        Pause Activity
+                    </button> -->
+                    <button class="start_btn mx-1" (click)="test_execution('Complete')"
+                        *ngIf="selectedRequests[0].status === 'Paused'">
+                        Complete Test
+                    </button>
                 </div>
             </div>
+            <span style="font-size: 0.73em; font-weight: 700; width: 100%; color: rgb(202, 27, 27);
+                display: flex; justify-content: flex-end; margin-top: 3px; padding-left: 5px;"
+                *ngIf="tasklist_byTaskID.length === 0">
+                **Select a task to view the test breakdown associated with the chosen Task ID.
+            </span>
         </div>
         <div class="col-12">
             <!-- table_col table-responsive -->
+
             <table class="table table-bordered table-hover">
                 <thead>
                     <tr>
@@ -31,17 +48,17 @@
                         <th>Task ID</th>
                         <th>Description</th>
                         <th>Resource</th>
-                        <th>Start Date</th>
-                        <th>End Date</th>
-                        <th>Test Duration (Hours)</th>
+                        <th>Start Date & <br> Time</th>
+                        <th>End Date & <br> Time</th>
+                        <th>Test Duration <br> (Hours)</th>
                         <th>Status</th>
                         <!-- <th>Action</th> -->
                     </tr>
                 </thead>
 
                 <tbody>
-                    <tr *ngFor="let request of filteredItems| paginate: { itemsPerPage, currentPage: page } ; 
-                        let i = index" [class.selected-row]="isSelected(request)" (click)="select_task(request)">
+                    <tr *ngFor="let  request of selectedRequests let i = index"
+                        [class.selected-row]="isSelected(request)" (click)="select_task(request)">
                         <th>
                             <input type="checkbox" [checked]="isSelected(request)"
                                 (change)="toggleSelection(request, $event)"
@@ -53,12 +70,14 @@
                         <td>{{ request?.resource }}</td>
                         <td>
                             {{ request?.requested_StartDate?.split("T")[0] }}
-                            &nbsp; &nbsp;
-                            {{request?.requested_StartDate | date: 'shortTime'}}</td>
+                            <br>
+                            {{request?.requested_StartDate | date: 'shortTime'}}
+                        </td>
                         <td>
                             {{ request?.requested_EndDate?.split("T")[0] }}
-                            &nbsp; &nbsp;
-                            {{request?.requested_EndDate | date: 'shortTime'}}</td>
+                            <br>
+                            {{request?.requested_EndDate | date: 'shortTime'}}
+                        </td>
                         <td>{{ request?.duration}}</td>
                         <td [ngStyle]="{
               'color': 
@@ -66,9 +85,32 @@
                 request?.status === 'Completed' ? 'black' : 
                 request?.status === 'In Progress' ? 'rgb(191 151 6)' :  ''
               }">{{ request?.status }}</td>
-                        <!-- <td style="text-align: center;"><a (click)="view_all_detail(request?.taskID)">View
-                                Detail</a>
-                        </td> -->
+                    </tr>
+                    <tr *ngFor="let request of filteredItems | filterNotSelected:selectedRequests | paginate: { itemsPerPage, currentPage: page }; let i = index"
+                        [class.selected-row]="isSelected(request)" (click)="select_task(request)">
+                        <th>
+                            <input type="checkbox" [checked]="isSelected(request)"
+                                (change)="toggleSelection(request, $event)"
+                                style="height: 15px; border: 1px solid black; box-shadow: none;">
+                        </th>
+                        <th>{{ i + 1 }}</th>
+                        <td>{{ request?.taskID }}</td>
+                        <td>{{ request?.description }}</td>
+                        <td>{{ request?.resource }}</td>
+                        <td>
+                            {{ request?.requested_StartDate?.split("T")[0] }}<br>
+                            {{ request?.requested_StartDate | date: 'shortTime' }}
+                        </td>
+                        <td>
+                            {{ request?.requested_EndDate?.split("T")[0] }}<br>
+                            {{ request?.requested_EndDate | date: 'shortTime' }}
+                        </td>
+                        <td>{{ request?.duration }}</td>
+                        <td [ngStyle]="{
+        'color': request?.status === 'Approved' ? 'green' : 
+                 request?.status === 'Completed' ? 'black' : 
+                 request?.status === 'In Progress' ? 'rgb(191 151 6)' :  ''
+      }">{{ request?.status }}</td>
                     </tr>
                 </tbody>
             </table>
@@ -95,11 +137,13 @@
                         placeholder="Search by Task number, or Any Relevant Information">
                 </div> -->
                 <div style="width: 100%; " class="bttn_div mt-2" *ngIf="selectedRequestsActivity.length">
-                    <button class="start_btn" (click)="test_execution('edit')"
-                        *ngIf="selectedRequestsActivity[0].status === 'Completed'">Edit Activity</button>
-
-                    <button class="start_btn mx-1" (click)="test_execution('end')"
-                        *ngIf="selectedRequestsActivity[0].status === 'In Progress'">End Activity</button>
+                    <button class="start_btn" (click)="test_execution('edit')">Edit Activity</button>
+                    <button class="start_btn mx-1" (click)="test_execution('Pause')" *ngIf="selectedRequestsActivity.length && 
+                        selectedRequestsActivity[0].requested_EndDate === null">
+                        Pause Activity
+                    </button>
+                    <!-- <button class="start_btn mx-1" (click)="test_execution('end')"
+                        *ngIf="selectedRequestsActivity[0].status === 'In Progress'">End Activity</button> -->
                 </div>
             </div>
 
@@ -112,10 +156,10 @@
                         <th>Task ID</th>
                         <th>Description</th>
                         <th>Resource</th>
-                        <th>Start Date</th>
-                        <th>End Date</th>
-                        <th>Test Duration (Hours)</th>
-                        <th>Status</th>
+                        <th>Start Date & <br> Time</th>
+                        <th>End Date & <br> Time</th>
+                        <th>Test Duration <br> (Hours)</th>
+                        <th>Comments</th>
                         <!-- <th>Action</th> -->
                     </tr>
                 </thead>
@@ -135,12 +179,14 @@
                         <td>{{ request?.resource }}</td>
                         <td>
                             {{ request?.requested_StartDate?.split("T")[0] }}
-                            &nbsp; &nbsp;
-                            {{request?.requested_StartDate | date: 'shortTime'}}</td>
+                            <br>
+                            {{request?.requested_StartDate | date: 'shortTime'}}
+                        </td>
                         <td>
                             {{ request?.requested_EndDate?.split("T")[0] }}
-                            &nbsp; &nbsp;
-                            {{request?.requested_EndDate | date: 'shortTime'}}</td>
+                            <br>
+                            {{request?.requested_EndDate | date: 'shortTime'}}
+                        </td>
                         <td>{{ request?.duration}}</td>
                         <td [ngStyle]="{
               'color': 

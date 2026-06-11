@@ -6,12 +6,15 @@ import { MAT_DIALOG_DATA, MatDialog, MatDialogRef } from "@angular/material/dial
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { AllApiServiceService } from '../Services/all-api-service.service';
 import { CommonServiceService } from '../Services/common-service.service';
+import { AuthService, User } from '../Services/auth/auth.service';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-all-tools-add-update',
   imports: [CommonModule, FormsModule, NgxPaginationModule],
   templateUrl: './all-tools-add-update.component.html',
-  styleUrl: './all-tools-add-update.component.scss'
+  styleUrl: './all-tools-add-update.component.scss',
+  standalone: true,
 })
 
 export class AllToolsAddUpdateComponent {
@@ -19,14 +22,27 @@ export class AllToolsAddUpdateComponent {
   page = 1;
   itemsPerPage: number = 25;
   searchText: any;
+  User: User | null | undefined;
+  private userSubscription !: Subscription;
+  user_id: any;
   constructor(private titleService: Title,
+    private authService: AuthService,
     private api_service: AllApiServiceService,
     private ngZone: NgZone,
     public dialog: MatDialog) {
-    this.titleService.setTitle('All Tools | MTL HALLIBURTON');
+
+    this.userSubscription = this.authService.currentUser$.subscribe(user => {
+      this.User = user;
+      const input = this.User?.userName;
+      let parts: any = input?.split('\\');
+      if (parts && parts.length > 1) {
+        this.user_id = parts[1];
+      }
+    })
+    this.titleService.setTitle('All Tools | TestTrack HALLIBURTON');
   }
 
-  ngOnInit(): void {
+  ngOnInit(): void { 
     this.startPolling()
   }
 
@@ -43,6 +59,7 @@ export class AllToolsAddUpdateComponent {
   }
 
   ngOnDestroy(): void {
+    this.userSubscription?.unsubscribe();
     if (this.pollingInterval) {
       clearInterval(this.pollingInterval)
       this.pollingInterval = null
@@ -90,7 +107,9 @@ export class AllToolsAddUpdateComponent {
       this.isLoading = true
     }
     const dialogRef = this.dialog.open(tool, {
-      data: { action_type: action_type, toolDetails: action_type === 'Update tool' ? toolDetails : '' },
+      data: { action_type: action_type, 
+        user_id: this.user_id,
+        toolDetails: action_type === 'Update tool' ? toolDetails : '' },
       width: '500px',
       panelClass: 'custom-dialog-container'
     })
@@ -132,7 +151,7 @@ export class AllToolsAddUpdateComponent {
         <div class="col-12">
             <h2>{{this.action_type === 'Update tool' ? 'Update Tool' : 'Add New Tool'}}</h2>
 
-            <form [formGroup]="tool_form" (ngSubmit)="onSubmit()">
+            <form autocomplete="off" [formGroup]="tool_form" (ngSubmit)="onSubmit()">
 
                 <div class="form-group border p-1 pt-0">
                     <div class="form_field">
@@ -182,6 +201,7 @@ export class tool {
   action_type: any
   tool_form !: FormGroup
   toolID: any
+  user_id: any
   constructor(private fb: FormBuilder,
     public dialogRef: MatDialogRef<tool>,
     private api_service: AllApiServiceService,
@@ -193,6 +213,7 @@ export class tool {
     });
 
     this.action_type = data.action_type
+    this.user_id = data.user_id
     if (this.action_type != 'Add tool') {
       this.toolID = data?.toolDetails?.toolID
       const tool = data?.toolDetails?.description
@@ -210,7 +231,7 @@ export class tool {
       const body = {
         "toolID": this.action_type === 'Update tool' ? Number(this.toolID) : 0,
         "description": this.tool_form.get('tool')?.value,
-        "userID": "H317697"
+        "userID": this.user_id
       }
 
       if (this.action_type != 'Update tool') {
@@ -272,7 +293,7 @@ export class tool {
       <div class="col-12">
         <h2>Delete Tool Confirmation</h2>
 
-        <form>
+        <form autocomplete="off">
         <label>Are you sure you want to delete tool: <strong>{{tool_name}}</strong>? <br> This action cannot be undone.</label>
         <div class="btn_div">
         <button class="yesbtn" (click)="delete_tool()" *ngIf="!Is_spinner">Yes, Delete</button>

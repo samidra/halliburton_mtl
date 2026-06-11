@@ -6,12 +6,15 @@ import { MAT_DIALOG_DATA, MatDialog, MatDialogRef } from "@angular/material/dial
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { AllApiServiceService } from '../Services/all-api-service.service';
 import { CommonServiceService } from '../Services/common-service.service';
+import { AuthService, User } from '../Services/auth/auth.service';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-all-facility-add-update',
   imports: [CommonModule, FormsModule, NgxPaginationModule],
   templateUrl: './all-facility-add-update.component.html',
-  styleUrl: './all-facility-add-update.component.scss'
+  styleUrl: './all-facility-add-update.component.scss',
+  standalone: true,
 })
 
 export class AllFacilityAddUpdateComponent {
@@ -20,12 +23,24 @@ export class AllFacilityAddUpdateComponent {
   itemsPerPage: number = 25;
   private pollingInterval: any = null;
   searchText: any;
+   User: User | null | undefined;
+  private userSubscription !: Subscription;
+  user_id: any;
   constructor(private titleService: Title,
     private api_service: AllApiServiceService,
+    private authService: AuthService,
     private common_service: CommonServiceService,
     private ngZone: NgZone,
     public dialog: MatDialog) {
-    this.titleService.setTitle('Add/Update All Facilities | MTL HALLIBURTON');
+      this.userSubscription = this.authService.currentUser$.subscribe(user => {
+      this.User = user;
+      const input = this.User?.userName;
+      let parts: any = input?.split('\\');
+      if (parts && parts.length > 1) {
+        this.user_id = parts[1];
+      }
+    })
+    this.titleService.setTitle('Add/Update All Facilities | TestTrack HALLIBURTON');
   }
 
   ngOnInit(): void {
@@ -44,6 +59,7 @@ export class AllFacilityAddUpdateComponent {
   }
 
   ngOnDestroy(): void {
+    this.userSubscription?.unsubscribe();
     if (this.pollingInterval) {
       clearInterval(this.pollingInterval)
       this.pollingInterval = null
@@ -95,7 +111,9 @@ export class AllFacilityAddUpdateComponent {
         this.Is_spinner = false
         this.isLoading = false
         const dialogRef = this.dialog.open(facility, {
-          data: { action_type: action_type, data: res, facility_id: action_type === 'Update Facility' ? facility_id : '' },
+          data: { action_type: action_type, data: res, 
+          user_id: this.user_id,
+            facility_id: action_type === 'Update Facility' ? facility_id : '' },
           width: '590px',
           panelClass: 'custom-dialog-container',
           disableClose: true
@@ -173,7 +191,7 @@ export class AllFacilityAddUpdateComponent {
         <div class="col-12">
             <h2>{{this.action_type === 'Update Facility' ? 'Update Facility' : 'Add New Facility'}}</h2>
 
-            <form [formGroup]="facility_form" (ngSubmit)="onSubmit()">
+            <form autocomplete="off" [formGroup]="facility_form" (ngSubmit)="onSubmit()">
                 <div class="scroll">
                     <div class="form-group">
                         <div class="form_field">
@@ -389,7 +407,7 @@ export class facility {
       this.filteredUsers = [];
     }
   }
-
+  user_id : any
   constructor(
     private api_service: AllApiServiceService,
     public common_service: CommonServiceService,
@@ -398,6 +416,7 @@ export class facility {
     public fb: FormBuilder) {
     this.action_type = data.action_type
     this.dropdownData = data?.data
+    this.user_id = data.user_id
     this.userlistOptions = this.dropdownData?.users
 
     this.facility_form = this.fb.group({
@@ -569,7 +588,7 @@ export class facility {
         "futureCheck": Number(this.facility_form.get('furture_check')?.value),
         "interval": Number(this.facility_form.get('interval_to_check')?.value),
         "emailNotification": this.facility_form.get('mail_notification')?.value,
-        "userID": 'H317697'
+        "userID": this.user_id
       }
 
       if (this.action_type != 'Update Facility') {
@@ -628,19 +647,17 @@ export class facility {
       <div class="col-12">
         <!-- <h2>This information must be read before proceeding.</h2> -->
 
-        <form>
+        <form autocomplete="off">
         <h3>List of all management users: </h3>
          <table class="table table-bordered" style="box-shadow: none;">
           <thead>
             <tr>
-              <th>S.No</th>
-              <th>Hal ID.</th>
+              <th>HALL ID</th>
               <th>User Name</th>
             </tr>
           </thead>
           <tbody>
             <tr *ngFor="let item of formattedUsers;let i = index">
-              <td>{{i+1}}</td>
               <td>{{item.userId}}</td>
               <td>{{item.userName}}</td>
             </tr>
@@ -706,7 +723,7 @@ export class management_user_list {
       <div class="col-12">
         <h2>Delete Facility Confirmation</h2>
 
-        <form>
+        <form autocomplete="off">
         <label>Are you sure you want to delete facility: <strong>{{facility_name}}</strong>? <br> This action cannot be undone.</label>
         <div class="btn_div">
         <button class="yesbtn" (click)="delete_Facility()" *ngIf="!Is_spinner">Yes, Delete</button>
@@ -772,7 +789,7 @@ export class delete_facility {
         <div class="col-12">
             <h2>Calibration Settings</h2>
 
-            <form [formGroup]="facility_form">
+            <form autocomplete="off" [formGroup]="facility_form">
                 <div class="form-group" style="width: max-content;">
                     <div class="form_field">
                         <label for="mail_notification">Email Notifications Enabled:
